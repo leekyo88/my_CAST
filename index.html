@@ -1,0 +1,832 @@
+<!--
+  ========================================================
+  Cast - 웹소설/작품 인물 프로필 & 마인드맵 관계도 노트
+  Created by: Creator (무료 배포 버전에 반영)
+  
+  * 본 프로그램은 누구나 자유롭게 사용할 수 있는 무료 도구입니다.
+  ========================================================
+-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cast - 캐릭터 프로필 & 관계도 노트</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Vis Network (그래프/마인드맵 라이브러리) -->
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <!-- html2canvas (관계도 이미지 저장용) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    #networkCanvas { width: 100%; height: 620px; border-radius: 1rem; background-color: #ffffff; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen pb-12">
+
+  <!-- 상단 네비게이션 바 -->
+  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <h1 class="text-2xl font-black tracking-tight text-gray-900">Cast</h1>
+        <span class="text-xs bg-gray-900 text-white px-2.5 py-0.5 rounded-full font-medium">v6</span>
+      </div>
+      
+      <!-- 뷰 전환 탭 -->
+      <div class="flex items-center bg-gray-100 p-1 rounded-xl">
+        <button id="tabCardsBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span>캐릭터 덱</span>
+        </button>
+        <button id="tabGraphBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition">
+          <i data-lucide="network" class="w-4 h-4"></i>
+          <span>마인드맵 관계도</span>
+        </button>
+      </div>
+
+      <!-- 우측 액션 버튼들 -->
+      <div class="flex items-center gap-2">
+        <div class="relative inline-block text-left">
+          <button id="backupMenuBtn" class="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">백업/복원</span>
+          </button>
+          
+          <div id="backupDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1">
+            <button id="exportJsonBtn" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <i data-lucide="download" class="w-4 h-4 text-gray-500"></i> JSON 내보내기 (백업)
+            </button>
+            <label for="importJsonInput" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4 text-gray-500"></i> JSON 불러오기 (복원)
+            </label>
+            <input type="file" id="importJsonInput" accept=".json" class="hidden" />
+          </div>
+        </div>
+
+        <button id="openModalBtn" class="flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>새 캐릭터</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
+
+    <!-- VIEW 1: 캐릭터 카드 덱 뷰 -->
+    <section id="cardsView" class="space-y-6">
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4.5 h-4.5 absolute left-3.5 top-3.5 text-gray-400"></i>
+            <input type="text" id="searchInput" placeholder="캐릭터 이름, 태그, 외모, 성격, 관계 등 검색..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition shadow-sm" />
+          </div>
+        </div>
+        <div id="tagContainer" class="flex flex-wrap items-center gap-1.5"></div>
+      </div>
+
+      <div id="characterGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+      <div id="emptyState" class="hidden text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+        <div class="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+          <i data-lucide="users" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-gray-700 font-semibold text-lg">등록된 캐릭터가 없습니다</h3>
+        <p class="text-sm text-gray-400 mt-1">상단의 '+ 새 캐릭터' 버튼을 눌러 첫 인물을 생성해 보세요!</p>
+      </div>
+    </section>
+
+    <!-- VIEW 2: 마인드맵 관계도 뷰 -->
+    <section id="graphView" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-2xl border border-gray-200 shadow-sm gap-3">
+        <div>
+          <h2 class="font-bold text-gray-900 text-lg flex items-center gap-2">
+            <span>마인드맵 인물 관계도</span>
+            <span class="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">정적 배치</span>
+          </h2>
+          <p class="text-xs text-gray-500 mt-0.5">화살표(A ➔ B) 방향에 따라 서열 및 마인드맵 가지가 정갈하게 고정 배치됩니다.</p>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <!-- 마인드맵 레이아웃 옵션 -->
+          <select id="layoutSelect" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
+            <option value="hierarchical-UD">가계도/조직도 (위 ➔ 아래 배치)</option>
+            <option value="hierarchical-LR">마인드맵 (좌 ➔ 우 가지 펼침)</option>
+            <option value="hub">방사형 정적 마인드맵</option>
+          </select>
+
+          <button id="downloadGraphImgBtn" class="flex items-center gap-1.5 bg-gray-900 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-black transition shadow-sm shrink-0">
+            <i data-lucide="image" class="w-4 h-4"></i>
+            <span>이미지 저장</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Vis.js 관계도 캔버스 영역 -->
+      <div class="relative border border-gray-200 shadow-sm rounded-2xl overflow-hidden bg-white">
+        <div id="networkCanvas"></div>
+        <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-2 rounded-xl border border-gray-200 text-[11px] text-gray-500 shadow-sm space-y-0.5 pointer-events-none">
+          <div>📌 <strong>위치 고정:</strong> 노드가 흔들리지 않고 딱 고정되어 화면이 정돈되어 보입니다.</div>
+          <div>💡 노드를 원하는 곳으로 마우스 드래그하여 옮길 수 있습니다.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 하단 제작자 푸터 영역 -->
+  <footer class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-4 text-center border-t border-gray-200/60 mt-16">
+    <p class="text-xs text-gray-400">
+      Designed & Developed with ❤️ by 
+      <a href="https://x.com/leekyo88?s=11" target="_blank" class="text-gray-600 font-semibold hover:underline">
+        @Leekyo88
+      </a>
+    </p>
+    <p class="text-[11px] text-gray-400 mt-1">
+      Free Release Version • All rights reserved.
+    </p>
+  </footer>
+
+  <!-- 1. 캐릭터 작성/수정 모달 -->
+  <div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <h2 id="modalTitle" class="font-bold text-gray-800 text-lg">새 캐릭터 등록</h2>
+        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <form id="charForm" class="p-6 overflow-y-auto space-y-5 flex-1">
+        <input type="hidden" id="charId" />
+        
+        <!-- 기본 정보 섹션 -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">기본 정보</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">이름 *</label>
+              <input type="text" id="nameInput" required placeholder="예: 강이현" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">태그 (쉼표 구분)</label>
+              <input type="text" id="tagsInput" placeholder="예: 남주, 북부대공, 집착남" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">한 줄 소개</label>
+            <input type="text" id="oneLinerInput" placeholder="예: 차가운 북부 대공이지만 내 여자에겐 따뜻함" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
+          </div>
+        </div>
+
+        <hr class="border-gray-100" />
+
+        <!-- 관계도 설정 섹션 -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">인물 관계 설정 (마인드맵 가지 생성용)</h3>
+              <p class="text-[11px] text-gray-400">상대 캐릭터 이름과 관계를 입력해 연결하세요 (A ➔ B 관계는 위/아래 순서 기준이 됩니다).</p>
+            </div>
+            <button type="button" id="addRelationBtn" class="text-xs text-black font-semibold hover:underline flex items-center gap-1">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 관계 추가
+            </button>
+          </div>
+          <div id="relationsContainer" class="space-y-2"></div>
+        </div>
+
+        <hr class="border-gray-100" />
+
+        <!-- 가변 설정 항목 섹션 -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">상세 프로필 설정</h3>
+            <button type="button" id="addFieldBtn" class="text-xs text-black font-semibold hover:underline flex items-center gap-1">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 항목 추가
+            </button>
+          </div>
+          <div id="dynamicFieldsContainer" class="space-y-3"></div>
+        </div>
+
+        <hr class="border-gray-100" />
+
+        <!-- 자유 메모란 -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">자유 메모란</label>
+          <textarea id="memoInput" rows="3" placeholder="서사 복선, 떡밥, 비하인드 스토리 등 자유로운 메모..." class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5"></textarea>
+        </div>
+
+        <!-- 버튼 바 -->
+        <div class="pt-4 flex justify-end gap-2 border-t border-gray-100">
+          <button type="button" id="cancelBtn" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition">취소</button>
+          <button type="submit" class="px-5 py-2 text-sm bg-black text-white rounded-xl hover:bg-gray-800 transition font-medium">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. 카드 상세 보기 모달 -->
+  <div id="detailModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <div>
+          <h2 id="detailName" class="font-bold text-gray-900 text-xl"></h2>
+          <p id="detailOneLiner" class="text-xs text-gray-500 mt-0.5"></p>
+        </div>
+        <button id="closeDetailModalBtn" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div id="detailContent" class="p-6 overflow-y-auto space-y-5 flex-1 text-sm">
+        <div id="detailTags" class="flex flex-wrap gap-1.5"></div>
+        
+        <div id="detailRelationsContainer" class="hidden">
+          <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">인물 관계</h4>
+          <div id="detailRelations" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="detailFields" class="space-y-3"></div>
+
+        <div id="detailMemoContainer" class="hidden">
+          <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">자유 메모</h4>
+          <div id="detailMemo" class="p-3.5 bg-yellow-50/60 border border-yellow-200/60 rounded-xl text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <button id="detailCopyBtn" class="flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          <span>프롬프트 복사</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="detailEditBtn" class="px-3.5 py-2 text-xs sm:text-sm text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium">수정</button>
+          <button id="detailDeleteBtn" class="px-3.5 py-2 text-xs sm:text-sm text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition font-medium">삭제</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_FIELDS = [
+      { key: 'appearance', label: '외모' },
+      { key: 'personality', label: '성격' },
+      { key: 'speech', label: '말투 및 대사 예시' },
+      { key: 'background', label: '배경 설정' }
+    ];
+
+    // 💡 [배포용 빈 상태] 초기 예시 데이터를 빈 배열로 변경
+    const SAMPLE_CHARACTERS = [];
+
+    let characters = JSON.parse(localStorage.getItem('cast_characters_v6')) || SAMPLE_CHARACTERS;
+    let activeTag = null;
+    let networkInstance = null;
+
+    const grid = document.getElementById('characterGrid');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const tagContainer = document.getElementById('tagContainer');
+    
+    const tabCardsBtn = document.getElementById('tabCardsBtn');
+    const tabGraphBtn = document.getElementById('tabGraphBtn');
+    const cardsView = document.getElementById('cardsView');
+    const graphView = document.getElementById('graphView');
+    const layoutSelect = document.getElementById('layoutSelect');
+    const downloadGraphImgBtn = document.getElementById('downloadGraphImgBtn');
+
+    const modal = document.getElementById('modal');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const charForm = document.getElementById('charForm');
+    const dynamicFieldsContainer = document.getElementById('dynamicFieldsContainer');
+    const addFieldBtn = document.getElementById('addFieldBtn');
+    const relationsContainer = document.getElementById('relationsContainer');
+    const addRelationBtn = document.getElementById('addRelationBtn');
+
+    const detailModal = document.getElementById('detailModal');
+    const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
+    const detailName = document.getElementById('detailName');
+    const detailOneLiner = document.getElementById('detailOneLiner');
+    const detailTags = document.getElementById('detailTags');
+    const detailFields = document.getElementById('detailFields');
+    const detailRelations = document.getElementById('detailRelations');
+    const detailRelationsContainer = document.getElementById('detailRelationsContainer');
+    const detailMemo = document.getElementById('detailMemo');
+    const detailMemoContainer = document.getElementById('detailMemoContainer');
+    const detailCopyBtn = document.getElementById('detailCopyBtn');
+    const detailEditBtn = document.getElementById('detailEditBtn');
+    const detailDeleteBtn = document.getElementById('detailDeleteBtn');
+
+    const backupMenuBtn = document.getElementById('backupMenuBtn');
+    const backupDropdown = document.getElementById('backupDropdown');
+    const exportJsonBtn = document.getElementById('exportJsonBtn');
+    const importJsonInput = document.getElementById('importJsonInput');
+
+    function init() {
+      renderTags();
+      renderCards(getFilteredCharacters());
+      lucide.createIcons();
+      setupEventListeners();
+    }
+
+    function setupEventListeners() {
+      tabCardsBtn.onclick = () => switchView('cards');
+      tabGraphBtn.onclick = () => switchView('graph');
+
+      backupMenuBtn.onclick = (e) => {
+        e.stopPropagation();
+        backupDropdown.classList.toggle('hidden');
+      };
+      document.onclick = () => backupDropdown.classList.add('hidden');
+
+      exportJsonBtn.onclick = exportJSON;
+      importJsonInput.onchange = importJSON;
+
+      searchInput.oninput = () => renderCards(getFilteredCharacters());
+
+      openModalBtn.onclick = () => openCharModal();
+      closeModalBtn.onclick = () => modal.classList.add('hidden');
+      cancelBtn.onclick = () => modal.classList.add('hidden');
+      closeDetailModalBtn.onclick = () => detailModal.classList.add('hidden');
+
+      addFieldBtn.onclick = () => addDynamicFieldInput('', '');
+      addRelationBtn.onclick = () => addRelationInput('', '');
+
+      layoutSelect.onchange = () => renderRelationshipGraph();
+      downloadGraphImgBtn.onclick = downloadGraphImage;
+
+      charForm.onsubmit = handleFormSubmit;
+    }
+
+    function switchView(viewName) {
+      if (viewName === 'cards') {
+        cardsView.classList.remove('hidden');
+        graphView.classList.add('hidden');
+        tabCardsBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm";
+        tabGraphBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition";
+      } else {
+        cardsView.classList.add('hidden');
+        graphView.classList.remove('hidden');
+        tabGraphBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm";
+        tabCardsBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition";
+        renderRelationshipGraph();
+      }
+    }
+
+    function renderRelationshipGraph() {
+      const container = document.getElementById('networkCanvas');
+      const layoutStyle = layoutSelect.value;
+      
+      const nodesArray = [];
+      const edgesArray = [];
+      const existingNodes = new Set();
+
+      characters.forEach(char => {
+        existingNodes.add(char.name);
+        nodesArray.push({
+          id: char.name,
+          label: `  ${char.name}  `,
+          title: char.oneLiner ? `${char.name}: ${char.oneLiner}` : char.name,
+          shape: 'box',
+          margin: { top: 10, bottom: 10, left: 16, right: 16 },
+          color: {
+            background: '#ffffff',
+            border: '#8b5cf6',
+            highlight: { background: '#f3e8ff', border: '#7c3aed' }
+          },
+          font: { size: 14, face: 'sans-serif', color: '#111827', bold: true },
+          borderWidth: 2,
+          shadow: { enabled: true, color: 'rgba(0,0,0,0.05)', size: 6, x: 0, y: 2 }
+        });
+      });
+
+      characters.forEach(char => {
+        if (char.relations) {
+          char.relations.forEach(rel => {
+            if (rel.targetName) {
+              if (!existingNodes.has(rel.targetName)) {
+                existingNodes.add(rel.targetName);
+                nodesArray.push({
+                  id: rel.targetName,
+                  label: `  ${rel.targetName}  `,
+                  shape: 'box',
+                  margin: { top: 8, bottom: 8, left: 14, right: 14 },
+                  color: {
+                    background: '#f9fafb',
+                    border: '#d1d5db',
+                    highlight: { background: '#f3f4f6', border: '#9ca3af' }
+                  },
+                  font: { size: 13, color: '#4b5563' },
+                  borderWidth: 1,
+                  shapeProperties: { borderDashes: true }
+                });
+              }
+
+              edgesArray.push({
+                from: char.name,
+                to: rel.targetName,
+                label: ` ${rel.label || ''} `,
+                arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+                font: { size: 11, color: '#6b7280', strokeWidth: 4, strokeColor: '#ffffff' },
+                color: { color: '#a78bfa', highlight: '#7c3aed' },
+                width: 2,
+                smooth: { type: 'cubicBezier', forceDirection: 'none', roundness: 0.4 }
+              });
+            }
+          });
+        }
+      });
+
+      const data = {
+        nodes: new vis.DataSet(nodesArray),
+        edges: new vis.DataSet(edgesArray)
+      };
+
+      let options = {
+        interaction: { hover: true, dragNodes: true, zoomView: true },
+        physics: { enabled: false }
+      };
+
+      if (layoutStyle === 'hierarchical-UD') {
+        options.layout = {
+          hierarchical: {
+            enabled: true,
+            direction: 'UD',
+            sortMethod: 'directed',
+            nodeSpacing: 160,
+            levelSeparation: 120
+          }
+        };
+      } else if (layoutStyle === 'hierarchical-LR') {
+        options.layout = {
+          hierarchical: {
+            enabled: true,
+            direction: 'LR',
+            sortMethod: 'directed',
+            nodeSpacing: 100,
+            levelSeparation: 200
+          }
+        };
+      } else if (layoutStyle === 'hub') {
+        options.physics = {
+          enabled: true,
+          solver: 'forceAtlas2Based',
+          stabilization: { iterations: 150 }
+        };
+      }
+
+      if (networkInstance) {
+        networkInstance.destroy();
+      }
+      networkInstance = new vis.Network(container, data, options);
+
+      if (layoutStyle === 'hub') {
+        networkInstance.once('stabilizationIterationsDone', function () {
+          networkInstance.setOptions({ physics: { enabled: false } });
+        });
+      }
+    }
+
+    function downloadGraphImage() {
+      const canvasArea = document.getElementById('networkCanvas');
+      html2canvas(canvasArea).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `cast_mindmap_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('cast_characters_v6', JSON.stringify(characters));
+    }
+
+    function getFilteredCharacters() {
+      const query = searchInput.value.trim().toLowerCase();
+      return characters.filter(char => {
+        if (activeTag && !char.tags.includes(activeTag)) return false;
+        if (!query) return true;
+        const nameMatch = char.name.toLowerCase().includes(query);
+        const oneLinerMatch = (char.oneLiner || '').toLowerCase().includes(query);
+        const tagMatch = char.tags.some(t => t.toLowerCase().includes(query));
+        const memoMatch = (char.memo || '').toLowerCase().includes(query);
+        const fieldMatch = char.fields ? char.fields.some(f => f.label.toLowerCase().includes(query) || f.value.toLowerCase().includes(query)) : false;
+        const relMatch = char.relations ? char.relations.some(r => r.targetName.toLowerCase().includes(query) || r.label.toLowerCase().includes(query)) : false;
+
+        return nameMatch || oneLinerMatch || tagMatch || memoMatch || fieldMatch || relMatch;
+      });
+    }
+
+    function renderTags() {
+      const allTags = Array.from(new Set(characters.flatMap(c => c.tags || [])));
+      tagContainer.innerHTML = '';
+      if (allTags.length === 0) return;
+
+      const allBtn = document.createElement('button');
+      allBtn.className = `text-xs px-3 py-1.5 rounded-xl font-medium transition ${activeTag === null ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'}`;
+      allBtn.innerText = '전체 보기';
+      allBtn.onclick = () => { activeTag = null; renderTags(); renderCards(getFilteredCharacters()); };
+      tagContainer.appendChild(allBtn);
+
+      allTags.forEach(tag => {
+        const btn = document.createElement('button');
+        const isActive = activeTag === tag;
+        btn.className = `text-xs px-3 py-1.5 rounded-xl font-medium transition ${isActive ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'}`;
+        btn.innerText = `#${tag}`;
+        btn.onclick = () => {
+          activeTag = isActive ? null : tag;
+          renderTags();
+          renderCards(getFilteredCharacters());
+        };
+        tagContainer.appendChild(btn);
+      });
+    }
+
+    function renderCards(list) {
+      grid.innerHTML = '';
+      if (list.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      list.forEach(char => {
+        const card = document.createElement('div');
+        card.className = "bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between cursor-pointer group";
+        card.onclick = (e) => {
+          if (!e.target.closest('button')) openDetailModal(char.id);
+        };
+
+        const topFields = char.fields ? char.fields.slice(0, 2) : [];
+        const topRelations = char.relations ? char.relations.slice(0, 2) : [];
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="text-lg font-bold text-gray-900 group-hover:text-black transition">${escapeHtml(char.name)}</h3>
+              <div class="flex items-center gap-1">
+                <button onclick="copyPrompt('${char.id}')" title="프롬프트 복사" class="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition">
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                </button>
+                <button onclick="openCharModal('${char.id}')" title="수정" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+            
+            <p class="text-xs text-gray-500 font-medium mb-3 line-clamp-1">${escapeHtml(char.oneLiner || '한 줄 소개가 없습니다.')}</p>
+            
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              ${(char.tags || []).map(t => `<span class="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">#${escapeHtml(t)}</span>`).join('')}
+            </div>
+
+            ${topRelations.length > 0 ? `
+              <div class="flex flex-wrap gap-1 mb-3">
+                ${topRelations.map(r => `<span class="text-[10px] bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-md">➔ ${escapeHtml(r.targetName)} (${escapeHtml(r.label)})</span>`).join('')}
+              </div>
+            ` : ''}
+
+            ${topFields.length > 0 ? `
+              <div class="space-y-1.5 text-xs text-gray-600 bg-gray-50 p-3 rounded-xl mb-3">
+                ${topFields.map(f => `<div class="truncate"><strong class="text-gray-800">${escapeHtml(f.label)}:</strong> ${escapeHtml(f.value)}</div>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+
+          ${char.memo ? `<div class="text-[11px] text-gray-400 border-t border-gray-100 pt-2.5 truncate">📝 ${escapeHtml(char.memo)}</div>` : ''}
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function addRelationInput(targetName = '', label = '') {
+      const relDiv = document.createElement('div');
+      relDiv.className = "flex gap-2 items-center relation-row";
+      relDiv.innerHTML = `
+        <span class="text-xs text-gray-400">➔</span>
+        <input type="text" placeholder="대상 이름 (예: 윤아리엘)" value="${escapeHtml(targetName)}" class="rel-target w-1/2 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
+        <input type="text" placeholder="관계 (예: 짝사랑)" value="${escapeHtml(label)}" class="rel-label flex-1 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
+        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        </button>
+      `;
+      relationsContainer.appendChild(relDiv);
+      lucide.createIcons();
+    }
+
+    function addDynamicFieldInput(label = '', value = '') {
+      const fieldDiv = document.createElement('div');
+      fieldDiv.className = "flex gap-2 items-start field-row";
+      fieldDiv.innerHTML = `
+        <input type="text" placeholder="항목명" value="${escapeHtml(label)}" class="field-label w-1/3 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
+        <textarea rows="2" placeholder="내용 입력..." class="field-value flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5">${escapeHtml(value)}</textarea>
+        <button type="button" onclick="this.parentElement.remove()" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
+      `;
+      dynamicFieldsContainer.appendChild(fieldDiv);
+      lucide.createIcons();
+    }
+
+    function openCharModal(charId = null) {
+      charForm.reset();
+      dynamicFieldsContainer.innerHTML = '';
+      relationsContainer.innerHTML = '';
+
+      if (charId) {
+        const char = characters.find(c => c.id === charId);
+        if (!char) return;
+        
+        document.getElementById('charId').value = char.id;
+        document.getElementById('modalTitle').innerText = '캐릭터 프로필 수정';
+        document.getElementById('nameInput').value = char.name;
+        document.getElementById('oneLinerInput').value = char.oneLiner || '';
+        document.getElementById('tagsInput').value = (char.tags || []).join(', ');
+        document.getElementById('memoInput').value = char.memo || '';
+
+        if (char.relations && char.relations.length > 0) {
+          char.relations.forEach(r => addRelationInput(r.targetName, r.label));
+        }
+
+        if (char.fields && char.fields.length > 0) {
+          char.fields.forEach(f => addDynamicFieldInput(f.label, f.value));
+        } else {
+          DEFAULT_FIELDS.forEach(f => addDynamicFieldInput(f.label, ''));
+        }
+      } else {
+        document.getElementById('charId').value = '';
+        document.getElementById('modalTitle').innerText = '새 캐릭터 등록';
+        DEFAULT_FIELDS.forEach(f => addDynamicFieldInput(f.label, ''));
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('charId').value;
+      const name = document.getElementById('nameInput').value.trim();
+      const oneLiner = document.getElementById('oneLinerInput').value.trim();
+      const tagsStr = document.getElementById('tagsInput').value;
+      const memo = document.getElementById('memoInput').value.trim();
+
+      const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+
+      const relRows = relationsContainer.querySelectorAll('.relation-row');
+      const relations = [];
+      relRows.forEach(row => {
+        const targetName = row.querySelector('.rel-target').value.trim();
+        const label = row.querySelector('.rel-label').value.trim();
+        if (targetName) relations.push({ targetName, label });
+      });
+
+      const fieldRows = dynamicFieldsContainer.querySelectorAll('.field-row');
+      const fields = [];
+      fieldRows.forEach(row => {
+        const label = row.querySelector('.field-label').value.trim();
+        const value = row.querySelector('.field-value').value.trim();
+        if (label || value) fields.push({ label: label || '항목', value });
+      });
+
+      if (id) {
+        const index = characters.findIndex(c => c.id === id);
+        if (index !== -1) characters[index] = { id, name, oneLiner, tags, relations, fields, memo };
+      } else {
+        const newChar = { id: Date.now().toString(), name, oneLiner, tags, relations, fields, memo };
+        characters.unshift(newChar);
+      }
+
+      saveToLocalStorage();
+      renderTags();
+      renderCards(getFilteredCharacters());
+      if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+      modal.classList.add('hidden');
+    }
+
+    function openDetailModal(id) {
+      const char = characters.find(c => c.id === id);
+      if (!char) return;
+
+      detailName.innerText = char.name;
+      detailOneLiner.innerText = char.oneLiner || '한 줄 소개가 없습니다.';
+      detailTags.innerHTML = (char.tags || []).map(t => `<span class="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg">#${escapeHtml(t)}</span>`).join('');
+
+      detailRelations.innerHTML = '';
+      if (char.relations && char.relations.length > 0) {
+        char.relations.forEach(r => {
+          const span = document.createElement('span');
+          span.className = "text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-xl";
+          span.innerText = `➔ ${r.targetName} (${r.label || '관계'})`;
+          detailRelations.appendChild(span);
+        });
+        detailRelationsContainer.classList.remove('hidden');
+      } else {
+        detailRelationsContainer.classList.add('hidden');
+      }
+
+      detailFields.innerHTML = '';
+      if (char.fields && char.fields.length > 0) {
+        char.fields.forEach(f => {
+          const item = document.createElement('div');
+          item.className = "bg-gray-50 border border-gray-100 p-3.5 rounded-xl";
+          item.innerHTML = `
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${escapeHtml(f.label)}</div>
+            <div class="text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(f.value || '-')}</div>
+          `;
+          detailFields.appendChild(item);
+        });
+      }
+
+      if (char.memo) {
+        detailMemo.innerText = char.memo;
+        detailMemoContainer.classList.remove('hidden');
+      } else {
+        detailMemoContainer.classList.add('hidden');
+      }
+
+      detailCopyBtn.onclick = () => copyPrompt(char.id);
+      detailEditBtn.onclick = () => { detailModal.classList.add('hidden'); openCharModal(char.id); };
+      detailDeleteBtn.onclick = () => {
+        if (confirm(`'${char.name}' 캐릭터를 삭제하시겠습니까?`)) {
+          characters = characters.filter(c => c.id !== char.id);
+          saveToLocalStorage();
+          renderTags();
+          renderCards(getFilteredCharacters());
+          if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+          detailModal.classList.add('hidden');
+        }
+      };
+
+      detailModal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    window.copyPrompt = (id) => {
+      const char = characters.find(c => c.id === id);
+      if (!char) return;
+
+      let promptText = `[캐릭터 프로필: ${char.name}]\n`;
+      if (char.oneLiner) promptText += `■ 한줄소개: ${char.oneLiner}\n`;
+      if (char.tags && char.tags.length > 0) promptText += `■ 태그: ${char.tags.join(', ')}\n`;
+      if (char.relations && char.relations.length > 0) {
+        promptText += `■ 관계: ` + char.relations.map(r => `${r.targetName}(${r.label})`).join(', ') + `\n`;
+      }
+      if (char.fields && char.fields.length > 0) {
+        char.fields.forEach(f => { promptText += `■ ${f.label}: ${f.value || '-'}\n`; });
+      }
+      if (char.memo) promptText += `■ 자유 메모: ${char.memo}\n`;
+
+      navigator.clipboard.writeText(promptText).then(() => {
+        alert(`'${char.name}'의 캐릭터 프롬프트가 복사되었습니다!`);
+      });
+    };
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(characters, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `cast_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importedData = JSON.parse(event.target.result);
+          if (Array.isArray(importedData)) {
+            if (confirm(`${importedData.length}개의 캐릭터 데이터로 덮어쓰시겠습니까?`)) {
+              characters = importedData;
+              saveToLocalStorage();
+              renderTags();
+              renderCards(getFilteredCharacters());
+              if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+              alert('복원이 성공적으로 완료되었습니다!');
+            }
+          }
+        } catch (err) { alert('JSON 파일을 읽는 중 오류가 발생했습니다.'); }
+      };
+      reader.readAsText(file);
+    }
+
+    function escapeHtml(str) {
+      return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&#039;").replace(/'/g, "&#039;") : '';
+    }
+
+    init();
+  </script>
+</body>
+</html>
