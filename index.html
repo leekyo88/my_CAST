@@ -16,9 +16,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Vis Network (그래프/마인드맵 라이브러리) -->
+  <!-- Vis Network -->
   <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-  <!-- html2canvas (관계도 이미지 저장용) -->
+  <!-- html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -33,25 +33,40 @@
 
   <!-- 상단 네비게이션 바 -->
   <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-      <div class="flex items-center space-x-3">
-        <h1 class="text-2xl font-black tracking-tight text-gray-900">Cast</h1>
-        <span class="text-xs bg-gray-900 text-white px-2.5 py-0.5 rounded-full font-medium">v6</span>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      
+      <!-- 로고 및 작품/이야기 선택 영역 -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <h1 class="text-xl sm:text-2xl font-black tracking-tight text-gray-900">Cast</h1>
+        
+        <div class="h-4 w-[1px] bg-gray-300 mx-1"></div>
+
+        <!-- 작품 선택 셀렉트 박스 -->
+        <div class="flex items-center gap-1">
+          <select id="storySelect" class="bg-gray-100 border border-gray-200 text-gray-800 text-xs sm:text-sm rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-black/10 cursor-pointer">
+          </select>
+          <button id="addStoryBtn" title="새 작품/이야기 추가" class="p-1.5 text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition">
+            <i data-lucide="folder-plus" class="w-4 h-4"></i>
+          </button>
+          <button id="deleteStoryBtn" title="현재 작품 삭제" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
       </div>
       
       <!-- 뷰 전환 탭 -->
       <div class="flex items-center bg-gray-100 p-1 rounded-xl">
         <button id="tabCardsBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm">
           <i data-lucide="layout-grid" class="w-4 h-4"></i>
-          <span>캐릭터 덱</span>
+          <span class="hidden md:inline">캐릭터 덱</span>
         </button>
         <button id="tabGraphBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition">
           <i data-lucide="network" class="w-4 h-4"></i>
-          <span>마인드맵 관계도</span>
+          <span class="hidden md:inline">관계도</span>
         </button>
       </div>
 
-      <!-- 우측 액션 버튼들 -->
+      <!-- 액션 버튼들 -->
       <div class="flex items-center gap-2">
         <div class="relative inline-block text-left">
           <button id="backupMenuBtn" class="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition">
@@ -61,16 +76,16 @@
           
           <div id="backupDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1">
             <button id="exportJsonBtn" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-              <i data-lucide="download" class="w-4 h-4 text-gray-500"></i> JSON 내보내기 (백업)
+              <i data-lucide="download" class="w-4 h-4 text-gray-500"></i> JSON 내보내기
             </button>
             <label for="importJsonInput" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
-              <i data-lucide="upload" class="w-4 h-4 text-gray-500"></i> JSON 불러오기 (복원)
+              <i data-lucide="upload" class="w-4 h-4 text-gray-500"></i> JSON 불러오기
             </label>
             <input type="file" id="importJsonInput" accept=".json" class="hidden" />
           </div>
         </div>
 
-        <button id="openModalBtn" class="flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition">
+        <button id="openModalBtn" class="flex items-center gap-1.5 bg-black text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition">
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span>새 캐릭터</span>
         </button>
@@ -98,8 +113,8 @@
         <div class="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
           <i data-lucide="users" class="w-7 h-7"></i>
         </div>
-        <h3 class="text-gray-700 font-semibold text-lg">등록된 캐릭터가 없습니다</h3>
-        <p class="text-sm text-gray-400 mt-1">상단의 '+ 새 캐릭터' 버튼을 눌러 첫 인물을 생성해 보세요!</p>
+        <h3 class="text-gray-700 font-semibold text-lg">이 작품에 등록된 캐릭터가 없습니다</h3>
+        <p class="text-sm text-gray-400 mt-1">상단의 '+ 새 캐릭터' 버튼을 눌러 인물을 추가해 보세요!</p>
       </div>
     </section>
 
@@ -108,17 +123,16 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-2xl border border-gray-200 shadow-sm gap-3">
         <div>
           <h2 class="font-bold text-gray-900 text-lg flex items-center gap-2">
-            <span>마인드맵 인물 관계도</span>
+            <span id="graphStoryTitle">마인드맵 관계도</span>
             <span class="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">정적 배치</span>
           </h2>
-          <p class="text-xs text-gray-500 mt-0.5">화살표(A ➔ B) 방향에 따라 서열 및 마인드맵 가지가 정갈하게 고정 배치됩니다.</p>
+          <p class="text-xs text-gray-500 mt-0.5">선택한 작품 안의 캐릭터 서열 및 관계도가 깔끔하게 정돈되어 표시됩니다.</p>
         </div>
         
         <div class="flex items-center gap-2">
-          <!-- 마인드맵 레이아웃 옵션 -->
           <select id="layoutSelect" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
-            <option value="hierarchical-UD">가계도/조직도 (위 ➔ 아래 배치)</option>
-            <option value="hierarchical-LR">마인드맵 (좌 ➔ 우 가지 펼침)</option>
+            <option value="hierarchical-UD">가계도/조직도 (위 ➔ 아래)</option>
+            <option value="hierarchical-LR">마인드맵 (좌 ➔ 우 가지)</option>
             <option value="hub">방사형 정적 마인드맵</option>
           </select>
 
@@ -129,19 +143,13 @@
         </div>
       </div>
 
-      <!-- Vis.js 관계도 캔버스 영역 -->
       <div class="relative border border-gray-200 shadow-sm rounded-2xl overflow-hidden bg-white">
         <div id="networkCanvas"></div>
-        <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-2 rounded-xl border border-gray-200 text-[11px] text-gray-500 shadow-sm space-y-0.5 pointer-events-none">
-          <div>📌 <strong>위치 고정:</strong> 노드가 흔들리지 않고 딱 고정되어 화면이 정돈되어 보입니다.</div>
-          <div>💡 노드를 원하는 곳으로 마우스 드래그하여 옮길 수 있습니다.</div>
-        </div>
       </div>
     </section>
 
   </main>
 
-  <!-- 하단 제작자 푸터 영역 -->
   <footer class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-4 text-center border-t border-gray-200/60 mt-16">
     <p class="text-xs text-gray-400">
       Designed & Developed with ❤️ by 
@@ -167,7 +175,6 @@
       <form id="charForm" class="p-6 overflow-y-auto space-y-5 flex-1">
         <input type="hidden" id="charId" />
         
-        <!-- 기본 정보 섹션 -->
         <div class="space-y-4">
           <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">기본 정보</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -188,12 +195,11 @@
 
         <hr class="border-gray-100" />
 
-        <!-- 관계도 설정 섹션 -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">인물 관계 설정 (마인드맵 가지 생성용)</h3>
-              <p class="text-[11px] text-gray-400">상대 캐릭터 이름과 관계를 입력해 연결하세요 (A ➔ B 관계는 위/아래 순서 기준이 됩니다).</p>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">인물 관계 설정</h3>
+              <p class="text-[11px] text-gray-400">상대 캐릭터 이름과 관계를 입력해 연결하세요.</p>
             </div>
             <button type="button" id="addRelationBtn" class="text-xs text-black font-semibold hover:underline flex items-center gap-1">
               <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 관계 추가
@@ -204,7 +210,6 @@
 
         <hr class="border-gray-100" />
 
-        <!-- 가변 설정 항목 섹션 -->
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">상세 프로필 설정</h3>
@@ -217,13 +222,11 @@
 
         <hr class="border-gray-100" />
 
-        <!-- 자유 메모란 -->
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">자유 메모란</label>
-          <textarea id="memoInput" rows="3" placeholder="서사 복선, 떡밥, 비하인드 스토리 등 자유로운 메모..." class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5"></textarea>
+          <textarea id="memoInput" rows="3" placeholder="서사 복선, 떡밥 등 자유로운 메모..." class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5"></textarea>
         </div>
 
-        <!-- 버튼 바 -->
         <div class="pt-4 flex justify-end gap-2 border-t border-gray-100">
           <button type="button" id="cancelBtn" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition">취소</button>
           <button type="submit" class="px-5 py-2 text-sm bg-black text-white rounded-xl hover:bg-gray-800 transition font-medium">저장하기</button>
@@ -282,12 +285,19 @@
       { key: 'background', label: '배경 설정' }
     ];
 
-    // 💡 [배포용 빈 상태] 초기 예시 데이터를 빈 배열로 변경
-    const SAMPLE_CHARACTERS = [];
+    // 기본 작품 설정
+    let stories = JSON.parse(localStorage.getItem('cast_stories_v7')) || [
+      { id: 'story_default', name: '기본 작품 1' }
+    ];
+    let currentStoryId = localStorage.getItem('cast_current_story_v7') || stories[0].id;
+    let characters = JSON.parse(localStorage.getItem('cast_characters_v7')) || [];
 
-    let characters = JSON.parse(localStorage.getItem('cast_characters_v6')) || SAMPLE_CHARACTERS;
     let activeTag = null;
     let networkInstance = null;
+
+    const storySelect = document.getElementById('storySelect');
+    const addStoryBtn = document.getElementById('addStoryBtn');
+    const deleteStoryBtn = document.getElementById('deleteStoryBtn');
 
     const grid = document.getElementById('characterGrid');
     const emptyState = document.getElementById('emptyState');
@@ -331,13 +341,74 @@
     const importJsonInput = document.getElementById('importJsonInput');
 
     function init() {
+      renderStoryOptions();
       renderTags();
-      renderCards(getFilteredCharacters());
+      renderCards(getCurrentStoryCharacters());
       lucide.createIcons();
       setupEventListeners();
     }
 
+    function saveToLocalStorage() {
+      localStorage.setItem('cast_stories_v7', JSON.stringify(stories));
+      localStorage.setItem('cast_current_story_v7', currentStoryId);
+      localStorage.setItem('cast_characters_v7', JSON.stringify(characters));
+    }
+
+    function getCurrentStoryCharacters() {
+      return characters.filter(c => (c.storyId || stories[0].id) === currentStoryId);
+    }
+
+    function renderStoryOptions() {
+      storySelect.innerHTML = '';
+      stories.forEach(story => {
+        const option = document.createElement('option');
+        option.value = story.id;
+        option.innerText = `📖 ${story.name}`;
+        if (story.id === currentStoryId) option.selected = true;
+        storySelect.appendChild(option);
+      });
+    }
+
     function setupEventListeners() {
+      storySelect.onchange = (e) => {
+        currentStoryId = e.target.value;
+        saveToLocalStorage();
+        activeTag = null;
+        renderTags();
+        renderCards(getCurrentStoryCharacters());
+        if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+      };
+
+      addStoryBtn.onclick = () => {
+        const storyName = prompt('새로 추가할 작품/이야기 제목을 입력하세요:');
+        if (storyName && storyName.trim()) {
+          const newStory = { id: 'story_' + Date.now(), name: storyName.trim() };
+          stories.push(newStory);
+          currentStoryId = newStory.id;
+          saveToLocalStorage();
+          renderStoryOptions();
+          renderTags();
+          renderCards(getCurrentStoryCharacters());
+        }
+      };
+
+      deleteStoryBtn.onclick = () => {
+        if (stories.length <= 1) {
+          alert('최소 하나 이상의 작품은 존재해야 합니다.');
+          return;
+        }
+        const currentStory = stories.find(s => s.id === currentStoryId);
+        if (confirm(`'${currentStory.name}' 작품과 해당 작품의 모든 캐릭터를 삭제하시겠습니까?`)) {
+          characters = characters.filter(c => c.storyId !== currentStoryId);
+          stories = stories.filter(s => s.id !== currentStoryId);
+          currentStoryId = stories[0].id;
+          saveToLocalStorage();
+          renderStoryOptions();
+          renderTags();
+          renderCards(getCurrentStoryCharacters());
+        }
+      };
+
       tabCardsBtn.onclick = () => switchView('cards');
       tabGraphBtn.onclick = () => switchView('graph');
 
@@ -384,12 +455,13 @@
     function renderRelationshipGraph() {
       const container = document.getElementById('networkCanvas');
       const layoutStyle = layoutSelect.value;
+      const currentList = getCurrentStoryCharacters();
       
       const nodesArray = [];
       const edgesArray = [];
       const existingNodes = new Set();
 
-      characters.forEach(char => {
+      currentList.forEach(char => {
         existingNodes.add(char.name);
         nodesArray.push({
           id: char.name,
@@ -408,7 +480,7 @@
         });
       });
 
-      characters.forEach(char => {
+      currentList.forEach(char => {
         if (char.relations) {
           char.relations.forEach(rel => {
             if (rel.targetName) {
@@ -505,13 +577,10 @@
       });
     }
 
-    function saveToLocalStorage() {
-      localStorage.setItem('cast_characters_v6', JSON.stringify(characters));
-    }
-
     function getFilteredCharacters() {
       const query = searchInput.value.trim().toLowerCase();
-      return characters.filter(char => {
+      const currentList = getCurrentStoryCharacters();
+      return currentList.filter(char => {
         if (activeTag && !char.tags.includes(activeTag)) return false;
         if (!query) return true;
         const nameMatch = char.name.toLowerCase().includes(query);
@@ -526,7 +595,8 @@
     }
 
     function renderTags() {
-      const allTags = Array.from(new Set(characters.flatMap(c => c.tags || [])));
+      const currentList = getCurrentStoryCharacters();
+      const allTags = Array.from(new Set(currentList.flatMap(c => c.tags || [])));
       tagContainer.innerHTML = '';
       if (allTags.length === 0) return;
 
@@ -699,9 +769,11 @@
 
       if (id) {
         const index = characters.findIndex(c => c.id === id);
-        if (index !== -1) characters[index] = { id, name, oneLiner, tags, relations, fields, memo };
+        if (index !== -1) {
+          characters[index] = { ...characters[index], name, oneLiner, tags, relations, fields, memo };
+        }
       } else {
-        const newChar = { id: Date.now().toString(), name, oneLiner, tags, relations, fields, memo };
+        const newChar = { id: Date.now().toString(), storyId: currentStoryId, name, oneLiner, tags, relations, fields, memo };
         characters.unshift(newChar);
       }
 
@@ -791,7 +863,8 @@
     };
 
     function exportJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(characters, null, 2));
+      const exportData = { stories, characters };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `cast_backup_${new Date().toISOString().slice(0,10)}.json`);
@@ -807,14 +880,17 @@
       reader.onload = (event) => {
         try {
           const importedData = JSON.parse(event.target.result);
-          if (Array.isArray(importedData)) {
-            if (confirm(`${importedData.length}개의 캐릭터 데이터로 덮어쓰시겠습니까?`)) {
-              characters = importedData;
+          if (importedData.stories && importedData.characters) {
+            if (confirm(`전체 작품 및 캐릭터 데이터로 덮어쓰시겠습니까?`)) {
+              stories = importedData.stories;
+              characters = importedData.characters;
+              currentStoryId = stories[0].id;
               saveToLocalStorage();
+              renderStoryOptions();
               renderTags();
-              renderCards(getFilteredCharacters());
+              renderCards(getCurrentStoryCharacters());
               if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
-              alert('복원이 성공적으로 완료되었습니다!');
+              alert('복원이 완료되었습니다!');
             }
           }
         } catch (err) { alert('JSON 파일을 읽는 중 오류가 발생했습니다.'); }
