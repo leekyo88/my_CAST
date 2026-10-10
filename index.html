@@ -1,908 +1,834 @@
-<!--
-  ========================================================
-  Cast - 웹소설/작품 인물 프로필 & 마인드맵 관계도 노트
-  Created by: Creator (무료 배포 버전에 반영)
-  
-  * 본 프로그램은 누구나 자유롭게 사용할 수 있는 무료 도구입니다.
-  ========================================================
--->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cast - 캐릭터 프로필 & 관계도 노트</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Vis Network -->
-  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-  <!-- html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    #networkCanvas { width: 100%; height: 620px; border-radius: 1rem; background-color: #ffffff; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="내가 실제로 무엇을 선택하는지 간파하고, 원하는 사람과 가까워지는 현실적인 경로를 보여주는 METAMATCH.">
+<meta name="theme-color" content="#6657e8">
+<title>METAMATCH | 연애 현실 메타인지 테스트</title>
+<!-- Public deployment build: DEV UI hidden -->
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;background:#f5f5fa;color:#18181b}
+.wrap{max-width:460px;margin:auto;min-height:100vh;background:#fff;box-shadow:0 0 35px rgba(0,0,0,.04)}
+.screen{display:none}.screen.active{display:block}
+.top{padding:22px 22px 8px;font-weight:900}.logo{color:#6657e8;letter-spacing:-.4px}
+.hero{padding:42px 24px 32px}.eyebrow{font-size:13px;color:#6657e8;font-weight:850}
+.hero h1{font-size:35px;line-height:1.17;margin:12px 0 15px;letter-spacing:-1.8px}
+.hero p,.muted{color:#696972;line-height:1.7}
+.btn{border:0;background:#18181b;color:#fff;border-radius:14px;padding:16px 18px;width:100%;font-size:16px;font-weight:850;cursor:pointer}
+.btn:disabled{opacity:.32;cursor:not-allowed}.btn.purple{background:#6657e8}.btn.ghost{background:#f2f0ff;color:#5145c8;margin-top:10px}
+.mini{font-size:12px;color:#96969f;text-align:center;margin-top:10px}
+.card{margin:12px 20px;padding:20px;border:1px solid #ececf1;border-radius:18px;background:#fff}
+.progress{height:5px;background:#eee;margin:8px 20px 0;border-radius:99px;overflow:hidden}.bar{height:100%;background:#6657e8}
+.q{padding:28px 22px 40px}.qnum{font-size:13px;color:#8a8a92}.q h2{font-size:22px;line-height:1.43;letter-spacing:-.7px;margin:12px 0 20px;word-break:keep-all}
+.option{padding:17px 16px;border:1px solid #dddde8;border-radius:13px;margin:10px 0;cursor:pointer;line-height:1.55;background:#f7f7fb;font-size:17px;font-weight:750;color:#202027;transition:.15s ease}
+.option:hover{border-color:#aaa2f3;background:#f2f0ff}
+.option.selected{border-color:#6657e8;background:#6657e8;color:#fff}
+.pill{display:inline-block;padding:6px 10px;border-radius:99px;background:#f1efff;color:#5145c8;font-size:12px;font-weight:850}
+.category-intro{min-height:76vh;display:flex;flex-direction:column;justify-content:center;padding:42px 28px;text-align:center}
+.category-part{font-size:12px;font-weight:900;letter-spacing:1.3px;color:#6657e8}
+.category-intro h1{font-size:31px;letter-spacing:-1.3px;margin:12px 0}
+.category-intro p{color:#696972;line-height:1.75;word-break:keep-all}
+.category-line{width:36px;height:3px;background:#6657e8;border-radius:99px;margin:24px auto}
+.demo-label{font-size:17px;font-weight:900;margin:26px 0 10px}.demo-grid{display:grid;gap:8px}.demo-grid .option{margin:0;font-weight:400;font-size:17px;background:#fff}.demo-grid .option.selected{font-weight:500;background:#f0eeff;color:#302a85}
+.mbti-input{width:100%;border:1px solid #e2e2ea;border-radius:13px;padding:16px;font:800 17px/1.2 inherit;letter-spacing:2px;text-transform:uppercase;outline:none}
+.check{display:flex;gap:10px;align-items:flex-start;margin:24px 0;padding:14px;background:#fafafa;border-radius:12px;font-size:12px;line-height:1.55;color:#666}
+.hint{background:#f3f1ff;border:1px solid #dfd9ff;border-radius:14px;padding:16px 17px;color:#35333f;font-size:16px;font-weight:750;line-height:1.75;margin:-6px 0 18px;word-break:keep-all}
+.hint .ab-line{display:block;padding:5px 0}
+.hint .ab-key{display:inline-block;min-width:24px;color:#5d4fe0;font-weight:900}
+.checkbox-list{display:grid;gap:8px}
+.check-option{display:flex;align-items:flex-start;gap:11px;padding:14px;border:1px solid #e7e7ed;border-radius:13px;cursor:pointer;line-height:1.45}
+.check-option.selected{border-color:#6657e8;background:#f0eeff}.check-option input{margin-top:3px;accent-color:#6657e8}
+.continue-wrap{margin-top:18px}
+.matrix{display:grid;gap:13px}.matrix-row{border:1px solid #e8e8ee;border-radius:14px;padding:14px;background:#fff}
+.matrix-title{font-size:14px;font-weight:800;line-height:1.5;margin-bottom:10px}
+.scale5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.scale5 button{min-height:42px;border:1px solid #e4e4eb;background:#fff;border-radius:9px;font-weight:850;color:#696972;cursor:pointer}
+.scale5 button.selected{background:#6657e8;border-color:#6657e8;color:#fff}
+.scale-labels{display:flex;justify-content:space-between;font-size:9px;color:#999;margin-top:6px}
+.resultHead{padding:30px 22px 8px}.resultHead h2{font-size:28px;letter-spacing:-1px;margin:8px 0}.resultHead p{margin-bottom:0}
+.insight-hero{background:#18181b;color:#fff;border:0}.insight-hero small{color:#bdb7ff;font-weight:900}.insight-hero h2{font-size:28px;line-height:1.33;letter-spacing:-1px;margin:8px 0 12px}.insight-hero p{color:#e1e1e5;line-height:1.75;margin:0}
+.insight{border-top:1px solid #eee;padding:15px 0}.insight:first-child{border-top:0;padding-top:0}.insight b{display:block;font-size:16px;line-height:1.45;margin-bottom:5px}.insight p{margin:0;color:#5d5d66;font-size:13px;line-height:1.7}
+.meta-vs{display:grid;grid-template-columns:1fr 28px 1fr;align-items:stretch;gap:6px}.meta-box{background:#f7f7fa;padding:14px;border-radius:13px}.meta-box small{font-size:10px;color:#777;font-weight:850}.meta-box b{display:block;font-size:14px;line-height:1.5;margin-top:5px}.meta-arrow{display:flex;align-items:center;justify-content:center;color:#6657e8;font-weight:900}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.chip{padding:7px 9px;background:#f1efff;color:#5145c8;border-radius:999px;font-size:12px;font-weight:800}
+.metric{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #eee}.metric:last-child{border-bottom:0}.metric b{font-size:13px}.metric span{font-size:13px;color:#666;text-align:right}
+.box{background:#f7f7fb;border-radius:14px;padding:15px;margin:10px 0;line-height:1.65}
+.radar-wrap{width:100%;max-width:350px;margin:12px auto 0}.radar-wrap svg{display:block;width:100%;height:auto;overflow:visible}
+.radar-legend{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:#666}
+.radar-legend span{display:flex;align-items:center;gap:6px}.radar-legend i{width:18px;height:3px;border-radius:4px;display:inline-block}
+.legend-ideal{background:#6657e8}.legend-me{background:#18181b}
+.lock{background:#faf9ff;border-color:#e6e0ff}.payhero{padding:18px;border-radius:15px;background:#18181b;color:#fff;margin:14px 0}.payhero strong{display:block;font-size:21px;line-height:1.45}.payhero span{display:block;color:#ddd;font-size:13px;line-height:1.65;margin-top:8px}
+.teaser-bars{margin:14px 0}.teaser-row{display:grid;grid-template-columns:92px 1fr 28px;gap:8px;align-items:center;margin:9px 0;font-size:12px}.teaser-line{height:8px;background:#e7e5ef;border-radius:99px;overflow:hidden}.teaser-line i{display:block;height:100%;background:#6657e8}.blur{filter:blur(6px);user-select:none}
+.price{text-align:center;font-size:30px;font-weight:900;margin:24px 0 16px}
+.report h3{font-size:19px}.section-kicker{font-size:11px;font-weight:850;letter-spacing:.12em;color:#6657e8;margin-bottom:7px}.section-lead{font-size:14px;line-height:1.75;color:#555;margin:0 0 14px}
+.priority-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.priority-box{padding:12px;border-radius:12px;background:#f7f7f9;border:1px solid #ededf2}.priority-box small{display:block;font-size:10px;color:#777;margin-bottom:5px}.priority-box b{font-size:13px}
+.report-callout{border-left:3px solid #6657e8;background:#f7f5ff;border-radius:0 12px 12px 0;padding:15px;line-height:1.7}
+.signal-table{display:flex;flex-direction:column;gap:9px;margin-top:14px}.signal-row{display:grid;grid-template-columns:12px minmax(90px,1fr) 72px 2fr;gap:9px;align-items:center;padding:12px 10px;border:1px solid #ececf1;border-radius:12px;background:#fff}
+.signal-dot{width:10px;height:10px;border-radius:50%}.signal-red{background:#df4a4a}.signal-yellow{background:#e1aa24}.signal-green{background:#35a66f}.signal-name{font-weight:800;font-size:13px}.signal-status{font-weight:800;font-size:12px}.signal-copy{font-size:12px;line-height:1.55;color:#666}
+.detail-bars{display:flex;flex-direction:column;gap:14px;margin-top:15px}.detail-item{border-top:1px solid #eee;padding-top:13px}.detail-item:first-child{border-top:0;padding-top:0}
+.bar-label{display:flex;justify-content:space-between;font-size:11px;color:#777;margin:5px 0}.hbar{height:9px;background:#eeeeF3;border-radius:99px;overflow:hidden}.hbar>i{display:block;height:100%;border-radius:99px}.hbar-prior>i{background:#6657e8}.hbar-me>i{background:#202025}
+.subscore{margin-top:14px;border-top:1px solid #eee;padding-top:10px}.subscore-row{display:grid;grid-template-columns:1.3fr .8fr .8fr;gap:7px;padding:8px 0;font-size:11px;border-bottom:1px solid #f1f1f4}.subscore-row b{font-size:11px}
+.nav-road{display:flex;flex-direction:column;gap:8px;margin-top:12px}.nav-step{padding:11px 12px;border-radius:11px;background:#f7f7f9;font-size:13px;line-height:1.55}.nav-step b{display:block;margin-bottom:2px}
+.search-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.search-tag{font-size:11px;padding:6px 9px;border-radius:99px;background:#f1efff;color:#5143c7}
+.route-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.route-card{border:1px solid #e8e8ee;border-radius:14px;padding:14px}.route-card small{font-size:10px;color:#777}.route-card h4{font-size:15px;margin:6px 0 8px}.route-card p{font-size:12px;line-height:1.65;color:#62626b;margin:0}
+.evidence-note{font-size:11px;line-height:1.65;color:#777;background:#fafafa;border:1px solid #eee;border-radius:12px;padding:12px;margin-top:12px}
+.footer{text-align:center;color:#aaa;font-size:11px;padding:28px}
+.dev-panel{position:fixed;right:14px;bottom:14px;z-index:9999;width:228px;padding:12px;border-radius:14px;background:rgba(24,24,28,.96);box-shadow:0 10px 30px rgba(0,0,0,.25);color:#fff}
+.dev-panel b{display:block;font-size:12px;margin-bottom:8px}.dev-panel .dev-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.dev-panel button{border:0;border-radius:9px;padding:9px 7px;font-size:11px;font-weight:850;cursor:pointer;background:#fff;color:#202025}.dev-panel button:last-child{background:#7a6cf0;color:#fff}.dev-panel small{display:block;margin-top:7px;font-size:9px;line-height:1.4;color:#bdbdc6}
+@media(max-width:600px){.signal-row{grid-template-columns:12px 1fr 70px}.signal-copy{grid-column:2/4}.priority-grid,.route-grid{grid-template-columns:1fr}.dev-panel{right:8px;bottom:8px;width:205px}}
+
+.mbti-card{background:linear-gradient(145deg,#f7f5ff,#fff);border:1px solid #e2dcff}
+.function-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px}
+.function-chip{padding:7px 10px;border-radius:999px;background:#ece9ff;color:#5145c8;font-size:12px;font-weight:850}
+.profile-evidence{display:grid;gap:8px;margin-top:12px}
+.profile-evidence .box{margin:0}
+.route-only{border:1px solid #ddd8ff;background:#f8f7ff;border-radius:16px;padding:17px}
+.route-only small{display:block;color:#6657e8;font-weight:900;font-size:11px;letter-spacing:.08em}
+.route-only h4{font-size:18px;line-height:1.45;margin:7px 0}
+.route-only p{font-size:13px;line-height:1.75;color:#555;margin:0}
+.route-badge{display:inline-block;margin-top:10px;padding:6px 9px;border-radius:999px;background:#18181b;color:#fff;font-size:11px;font-weight:850}
+
+
+#devPanel{display:none!important}
+</style>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen pb-12">
+<body>
+<div class="wrap">
+<div class="top"><span class="logo">METAMATCH</span></div>
 
-  <!-- 상단 네비게이션 바 -->
-  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-      
-      <!-- 로고 및 작품/이야기 선택 영역 -->
-      <div class="flex items-center space-x-2 sm:space-x-3">
-        <h1 class="text-xl sm:text-2xl font-black tracking-tight text-gray-900">Cast</h1>
-        
-        <div class="h-4 w-[1px] bg-gray-300 mx-1"></div>
-
-        <!-- 작품 선택 셀렉트 박스 -->
-        <div class="flex items-center gap-1">
-          <select id="storySelect" class="bg-gray-100 border border-gray-200 text-gray-800 text-xs sm:text-sm rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-black/10 cursor-pointer">
-          </select>
-          <button id="addStoryBtn" title="새 작품/이야기 추가" class="p-1.5 text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition">
-            <i data-lucide="folder-plus" class="w-4 h-4"></i>
-          </button>
-          <button id="deleteStoryBtn" title="현재 작품 삭제" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-      
-      <!-- 뷰 전환 탭 -->
-      <div class="flex items-center bg-gray-100 p-1 rounded-xl">
-        <button id="tabCardsBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm">
-          <i data-lucide="layout-grid" class="w-4 h-4"></i>
-          <span class="hidden md:inline">캐릭터 덱</span>
-        </button>
-        <button id="tabGraphBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition">
-          <i data-lucide="network" class="w-4 h-4"></i>
-          <span class="hidden md:inline">관계도</span>
-        </button>
-      </div>
-
-      <!-- 액션 버튼들 -->
-      <div class="flex items-center gap-2">
-        <div class="relative inline-block text-left">
-          <button id="backupMenuBtn" class="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition">
-            <i data-lucide="database" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">백업/복원</span>
-          </button>
-          
-          <div id="backupDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1">
-            <button id="exportJsonBtn" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-              <i data-lucide="download" class="w-4 h-4 text-gray-500"></i> JSON 내보내기
-            </button>
-            <label for="importJsonInput" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
-              <i data-lucide="upload" class="w-4 h-4 text-gray-500"></i> JSON 불러오기
-            </label>
-            <input type="file" id="importJsonInput" accept=".json" class="hidden" />
-          </div>
-        </div>
-
-        <button id="openModalBtn" class="flex items-center gap-1.5 bg-black text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>새 캐릭터</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
-
-    <!-- VIEW 1: 캐릭터 카드 덱 뷰 -->
-    <section id="cardsView" class="space-y-6">
-      <div class="space-y-4">
-        <div class="flex flex-col sm:flex-row gap-3">
-          <div class="relative flex-1">
-            <i data-lucide="search" class="w-4.5 h-4.5 absolute left-3.5 top-3.5 text-gray-400"></i>
-            <input type="text" id="searchInput" placeholder="캐릭터 이름, 태그, 외모, 성격, 관계 등 검색..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition shadow-sm" />
-          </div>
-        </div>
-        <div id="tagContainer" class="flex flex-wrap items-center gap-1.5"></div>
-      </div>
-
-      <div id="characterGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
-      <div id="emptyState" class="hidden text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
-        <div class="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
-          <i data-lucide="users" class="w-7 h-7"></i>
-        </div>
-        <h3 class="text-gray-700 font-semibold text-lg">이 작품에 등록된 캐릭터가 없습니다</h3>
-        <p class="text-sm text-gray-400 mt-1">상단의 '+ 새 캐릭터' 버튼을 눌러 인물을 추가해 보세요!</p>
-      </div>
-    </section>
-
-    <!-- VIEW 2: 마인드맵 관계도 뷰 -->
-    <section id="graphView" class="hidden space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-2xl border border-gray-200 shadow-sm gap-3">
-        <div>
-          <h2 class="font-bold text-gray-900 text-lg flex items-center gap-2">
-            <span id="graphStoryTitle">마인드맵 관계도</span>
-            <span class="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">정적 배치</span>
-          </h2>
-          <p class="text-xs text-gray-500 mt-0.5">선택한 작품 안의 캐릭터 서열 및 관계도가 깔끔하게 정돈되어 표시됩니다.</p>
-        </div>
-        
-        <div class="flex items-center gap-2">
-          <select id="layoutSelect" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
-            <option value="hierarchical-UD">가계도/조직도 (위 ➔ 아래)</option>
-            <option value="hierarchical-LR">마인드맵 (좌 ➔ 우 가지)</option>
-            <option value="hub">방사형 정적 마인드맵</option>
-          </select>
-
-          <button id="downloadGraphImgBtn" class="flex items-center gap-1.5 bg-gray-900 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-black transition shadow-sm shrink-0">
-            <i data-lucide="image" class="w-4 h-4"></i>
-            <span>이미지 저장</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="relative border border-gray-200 shadow-sm rounded-2xl overflow-hidden bg-white">
-        <div id="networkCanvas"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-4 text-center border-t border-gray-200/60 mt-16">
-    <p class="text-xs text-gray-400">
-      Designed & Developed with ❤️ by 
-      <a href="https://x.com/leekyo88?s=11" target="_blank" class="text-gray-600 font-semibold hover:underline">
-        @Leekyo88
-      </a>
-    </p>
-    <p class="text-[11px] text-gray-400 mt-1">
-      Free Release Version • All rights reserved.
-    </p>
-  </footer>
-
-  <!-- 1. 캐릭터 작성/수정 모달 -->
-  <div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-        <h2 id="modalTitle" class="font-bold text-gray-800 text-lg">새 캐릭터 등록</h2>
-        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-      
-      <form id="charForm" class="p-6 overflow-y-auto space-y-5 flex-1">
-        <input type="hidden" id="charId" />
-        
-        <div class="space-y-4">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">기본 정보</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">이름 *</label>
-              <input type="text" id="nameInput" required placeholder="예: 강이현" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">태그 (쉼표 구분)</label>
-              <input type="text" id="tagsInput" placeholder="예: 남주, 북부대공, 집착남" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">한 줄 소개</label>
-            <input type="text" id="oneLinerInput" placeholder="예: 차가운 북부 대공이지만 내 여자에겐 따뜻함" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
-          </div>
-        </div>
-
-        <hr class="border-gray-100" />
-
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">인물 관계 설정</h3>
-              <p class="text-[11px] text-gray-400">상대 캐릭터 이름과 관계를 입력해 연결하세요.</p>
-            </div>
-            <button type="button" id="addRelationBtn" class="text-xs text-black font-semibold hover:underline flex items-center gap-1">
-              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 관계 추가
-            </button>
-          </div>
-          <div id="relationsContainer" class="space-y-2"></div>
-        </div>
-
-        <hr class="border-gray-100" />
-
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">상세 프로필 설정</h3>
-            <button type="button" id="addFieldBtn" class="text-xs text-black font-semibold hover:underline flex items-center gap-1">
-              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 항목 추가
-            </button>
-          </div>
-          <div id="dynamicFieldsContainer" class="space-y-3"></div>
-        </div>
-
-        <hr class="border-gray-100" />
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">자유 메모란</label>
-          <textarea id="memoInput" rows="3" placeholder="서사 복선, 떡밥 등 자유로운 메모..." class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5"></textarea>
-        </div>
-
-        <div class="pt-4 flex justify-end gap-2 border-t border-gray-100">
-          <button type="button" id="cancelBtn" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition">취소</button>
-          <button type="submit" class="px-5 py-2 text-sm bg-black text-white rounded-xl hover:bg-gray-800 transition font-medium">저장하기</button>
-        </div>
-      </form>
-    </div>
+<section id="home" class="screen active">
+  <div class="hero">
+    <div class="eyebrow">연애 현실 메타인지 테스트</div>
+    <h1>나는 실제로<br>어떤 사람을 고를까?</h1>
+    <p>말로 생각하는 이상형과 실제 선택 패턴, 현재의 나를 함께 봅니다. 무료 결과에서는 <b>내가 미처 언어화하지 못한 연애 패턴</b>을 먼저 보여드려요.</p>
+    <button class="btn purple" onclick="showOnly('demographics')">테스트 시작하기</button>
+    <div class="mini">무료 핵심 설문 37문항 · 약 7~9분</div>
   </div>
+</section>
 
-  <!-- 2. 카드 상세 보기 모달 -->
-  <div id="detailModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-        <div>
-          <h2 id="detailName" class="font-bold text-gray-900 text-xl"></h2>
-          <p id="detailOneLiner" class="text-xs text-gray-500 mt-0.5"></p>
-        </div>
-        <button id="closeDetailModalBtn" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-      
-      <div id="detailContent" class="p-6 overflow-y-auto space-y-5 flex-1 text-sm">
-        <div id="detailTags" class="flex flex-wrap gap-1.5"></div>
-        
-        <div id="detailRelationsContainer" class="hidden">
-          <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">인물 관계</h4>
-          <div id="detailRelations" class="flex flex-wrap gap-2"></div>
-        </div>
-
-        <div id="detailFields" class="space-y-3"></div>
-
-        <div id="detailMemoContainer" class="hidden">
-          <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">자유 메모</h4>
-          <div id="detailMemo" class="p-3.5 bg-yellow-50/60 border border-yellow-200/60 rounded-xl text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
-        </div>
-      </div>
-
-      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
-        <button id="detailCopyBtn" class="flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition">
-          <i data-lucide="copy" class="w-4 h-4"></i>
-          <span>프롬프트 복사</span>
-        </button>
-        <div class="flex items-center gap-2">
-          <button id="detailEditBtn" class="px-3.5 py-2 text-xs sm:text-sm text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium">수정</button>
-          <button id="detailDeleteBtn" class="px-3.5 py-2 text-xs sm:text-sm text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition font-medium">삭제</button>
-        </div>
-      </div>
-    </div>
+<section id="demographics" class="screen"><div class="q">
+  <span class="pill">기본 정보</span><h2>분석에 필요한 기본 정보예요.</h2>
+  <div class="demo-label">본인의 성별</div><div id="genderOptions" class="demo-grid">
+    <div class="option" onclick="pickDemo('gender','female',this)">여성</div><div class="option" onclick="pickDemo('gender','male',this)">남성</div>
   </div>
+  <div class="demo-label">주로 연애 대상으로 고려하는 성별</div><div id="targetOptions" class="demo-grid">
+    <div class="option" onclick="pickDemo('target','female',this)">여성</div><div class="option" onclick="pickDemo('target','male',this)">남성</div><div class="option" onclick="pickDemo('target','both',this)">남성·여성 모두</div>
+  </div>
+  <div class="demo-label">연령대</div><div id="ageOptions" class="demo-grid">
+    <div class="option" onclick="pickDemo('age','20-24',this)">20~24세</div><div class="option" onclick="pickDemo('age','25-29',this)">25~29세</div>
+    <div class="option" onclick="pickDemo('age','30-34',this)">30~34세</div><div class="option" onclick="pickDemo('age','35-39',this)">35~39세</div>
+    <div class="option" onclick="pickDemo('age','40-44',this)">40~44세</div><div class="option" onclick="pickDemo('age','45-49',this)">45~49세</div>
+    <div class="option" onclick="pickDemo('age','50+',this)">50세 이상</div>
+  </div>
+  <div class="demo-label">MBTI</div><input id="mbtiInput" class="mbti-input" maxlength="4" placeholder="예: INTJ" oninput="handleMbti(this)">
+  <div id="mbtiError" class="mini" style="display:none;color:#b42318;text-align:left">16개 MBTI 유형 중 하나를 입력해주세요.</div>
+  <label class="check"><input id="dataConsent" type="checkbox" onchange="updateGate()"><span><b>설문 데이터 수집·분석에 동의합니다.</b><br>성별·연령대·연애 대상·MBTI와 설문 응답 및 계산 결과를 분석과 서비스 개선 목적으로 수집합니다. 베타 운영 및 목적 달성 시까지, 최대 1년 보관합니다. 동의를 거부할 수 있으나 테스트 이용은 어렵습니다.</span></label>
+  <button id="demoNext" class="btn purple" disabled onclick="startQuiz()">무료 진단 시작</button>
+</div></section>
 
-  <script>
-    const DEFAULT_FIELDS = [
-      { key: 'appearance', label: '외모' },
-      { key: 'personality', label: '성격' },
-      { key: 'speech', label: '말투 및 대사 예시' },
-      { key: 'background', label: '배경 설정' }
-    ];
+<section id="category" class="screen"><div class="category-intro"><div id="catPart" class="category-part"></div><h1 id="catTitle"></h1><p id="catDesc"></p><div class="category-line"></div><button id="catNext" class="btn purple">계속하기</button></div></section>
 
-    // 기본 작품 설정
-    let stories = JSON.parse(localStorage.getItem('cast_stories_v7')) || [
-      { id: 'story_default', name: '기본 작품 1' }
-    ];
-    let currentStoryId = localStorage.getItem('cast_current_story_v7') || stories[0].id;
-    let characters = JSON.parse(localStorage.getItem('cast_characters_v7')) || [];
+<section id="quiz" class="screen">
+ <div class="progress"><div id="quizBar" class="bar"></div></div>
+ <div class="q">
+   <div id="quizNum" class="qnum"></div>
+   <h2 id="quizText"></h2>
+   <div id="quizHint"></div>
+   <div id="quizOptions"></div>
+   <div id="quizContinueWrap" class="continue-wrap" style="display:none"><button id="quizContinue" class="btn purple" onclick="continueComplex()" disabled>계속하기</button></div>
+   <button id="quizPrev" class="btn ghost" onclick="prevQuiz()">이전 질문</button>
+ </div>
+</section>
 
-    let activeTag = null;
-    let networkInstance = null;
+<section id="free" class="screen">
+ <div class="resultHead"><span class="pill">무료 분석 결과</span><h2>당신의 연애 선택 패턴</h2><p class="muted">점수보다 응답 사이의 관계를 먼저 읽었습니다.</p></div>
 
-    const storySelect = document.getElementById('storySelect');
-    const addStoryBtn = document.getElementById('addStoryBtn');
-    const deleteStoryBtn = document.getElementById('deleteStoryBtn');
+ <div id="insightHero" class="card insight-hero"></div>
 
-    const grid = document.getElementById('characterGrid');
-    const emptyState = document.getElementById('emptyState');
-    const searchInput = document.getElementById('searchInput');
-    const tagContainer = document.getElementById('tagContainer');
-    
-    const tabCardsBtn = document.getElementById('tabCardsBtn');
-    const tabGraphBtn = document.getElementById('tabGraphBtn');
-    const cardsView = document.getElementById('cardsView');
-    const graphView = document.getElementById('graphView');
-    const layoutSelect = document.getElementById('layoutSelect');
-    const downloadGraphImgBtn = document.getElementById('downloadGraphImgBtn');
+ <div class="card"><h3>이거 혹시 당신 얘기 아닌가요?</h3><div id="insightList"></div></div>
 
-    const modal = document.getElementById('modal');
-    const openModalBtn = document.getElementById('openModalBtn');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const charForm = document.getElementById('charForm');
-    const dynamicFieldsContainer = document.getElementById('dynamicFieldsContainer');
-    const addFieldBtn = document.getElementById('addFieldBtn');
-    const relationsContainer = document.getElementById('relationsContainer');
-    const addRelationBtn = document.getElementById('addRelationBtn');
+ <div class="card"><h3>내가 생각하는 나 vs 실제 선택 패턴</h3><div id="metaVs"></div></div>
+ <div class="card mbti-card"><h3>당신이 사람을 보는 방식</h3><div id="mbtiFreeLens"></div></div>
 
-    const detailModal = document.getElementById('detailModal');
-    const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
-    const detailName = document.getElementById('detailName');
-    const detailOneLiner = document.getElementById('detailOneLiner');
-    const detailTags = document.getElementById('detailTags');
-    const detailFields = document.getElementById('detailFields');
-    const detailRelations = document.getElementById('detailRelations');
-    const detailRelationsContainer = document.getElementById('detailRelationsContainer');
-    const detailMemo = document.getElementById('detailMemo');
-    const detailMemoContainer = document.getElementById('detailMemoContainer');
-    const detailCopyBtn = document.getElementById('detailCopyBtn');
-    const detailEditBtn = document.getElementById('detailEditBtn');
-    const detailDeleteBtn = document.getElementById('detailDeleteBtn');
+ <div class="card"><h3>연애에서 이미 가진 카드</h3><div id="strengthCard"></div></div>
 
-    const backupMenuBtn = document.getElementById('backupMenuBtn');
-    const backupDropdown = document.getElementById('backupDropdown');
-    const exportJsonBtn = document.getElementById('exportJsonBtn');
-    const importJsonInput = document.getElementById('importJsonInput');
+ <div class="card"><h3>당신의 연애에서 엇갈리는 부분</h3><div id="paradoxCard"></div></div>
 
-    function init() {
-      renderStoryOptions();
-      renderTags();
-      renderCards(getCurrentStoryCharacters());
-      lucide.createIcons();
-      setupEventListeners();
+ <div class="card">
+   <h3>내가 중요하게 보는 것 vs 현재의 나</h3>
+   <p class="muted">외적 끌림 자체는 현재의 나와 비교하지 않습니다. 아래 그래프는 <b>서로 비교 가능한 행동·자원 영역</b>만 묶어 보여줍니다.</p>
+   <div id="radarWrap" class="radar-wrap"></div>
+   <div class="radar-legend"><span><i class="legend-ideal"></i>상대에게 중요하게 보는 정도</span><span><i class="legend-me"></i>현재의 나</span></div>
+ </div>
+
+ <div class="card"><h3>현재 확인할 가치가 있는 차이</h3><div id="freeGap"></div></div>
+
+ <div class="card"><h3>현재의 연애 전략 유형</h3><div id="strategyType"></div></div>
+
+ <div class="card lock">
+   <h3>그런데 아직 한 가지를 보지 않았습니다.</h3>
+   <div class="payhero"><strong>당신이 원하는 그 사람은<br>어떤 사람을 원할까요?</strong><span>지금까지는 당신의 시선에서만 연애를 봤습니다. 정밀분석에서는 방향을 뒤집어, 이상형이 상대에게 기대할 가능성이 있는 조건과 현재의 나를 비교합니다.</span></div>
+   <div class="teaser-bars">
+      <div class="teaser-row"><span>정서·관계</span><div class="teaser-line"><i style="width:82%"></i></div><b>높음</b></div>
+      <div class="teaser-row"><span>경제 기반</span><div class="teaser-line blur"><i style="width:68%"></i></div><b>🔒</b></div>
+      <div class="teaser-row"><span>외적 관리</span><div class="teaser-line blur"><i style="width:61%"></i></div><b>🔒</b></div>
+   </div>
+   <div class="price"><small style="display:block;font-size:12px;color:#888">정식 출시 예정가 · 1회 결제</small>₩990</div>
+   <button class="btn purple" onclick="startPrecision()">베타에서 무료로 정밀 결과 보기</button>
+   <div class="mini">구독 없음 · 자동결제 없음 · 추가 전략 질문 10개</div>
+ </div>
+</section>
+
+<section id="precision" class="screen">
+ <div class="progress"><div id="precisionBar" class="bar"></div></div>
+ <div class="q">
+   <div id="precisionNum" class="qnum"></div><span class="pill">정밀 전략 질문</span><h2 id="precisionText"></h2>
+   <div id="precisionOptions"></div><button id="precisionPrev" class="btn ghost" onclick="prevPrecision()">이전 질문</button>
+ </div>
+</section>
+
+<section id="report" class="screen report">
+ <div class="resultHead"><span class="pill">정밀 분석 결과</span><h2 id="reportTitle"></h2><p class="muted">당신, 당신이 원하는 사람, 그리고 둘 사이의 현실적인 접점을 함께 봅니다.</p></div>
+
+ <div class="card mbti-card">
+  <div class="section-kicker">01 · YOU</div><h3>당신은 이런 방식으로 사람을 봅니다</h3>
+  <div id="profileLens"></div>
+ </div>
+
+ <div class="card">
+  <div class="section-kicker">02 · YOUR IDEAL</div><h3>당신이 원하는 사람은 이런 사람입니다</h3>
+  <div id="idealProfile"></div>
+ </div>
+
+ <div class="card">
+  <div class="section-kicker">03 · PRIORITY</div><h3>그 사람에게서 특히 포기하기 어려운 것</h3>
+  <div id="priorityMap"></div>
+ </div>
+
+ <div class="card">
+  <div class="section-kicker">04 · THEIR VIEW</div><h3>그런 사람은 어떤 상대를 원할 가능성이 높을까?</h3>
+  <div id="reverseSummary"></div>
+ </div>
+
+ <div class="card">
+  <div class="section-kicker">05 · GAP</div><h3>그 기준에서 본 현재의 당신</h3>
+  <div id="precisionRadar" class="radar-wrap"></div>
+  <div class="radar-legend"><span><i class="legend-ideal"></i>상대가 기대할 가능성이 높은 수준</span><span><i class="legend-me"></i>현재의 나</span></div>
+  <div id="gapSignal" class="signal-table"></div><div id="gapDetail" class="detail-bars"></div>
+  <div id="econSubscores" class="subscore"></div>
+ </div>
+
+ <div class="card">
+  <div class="section-kicker">06 · YOUR ROUTE</div><h3>지금 당신에게 맞는 전략</h3>
+  <div id="singleRoute"></div>
+ </div>
+
+ <div class="card">
+  <div class="section-kicker">07 · ACTION</div><h3>그 전략을 실제로 옮긴다면</h3>
+  <div id="growthNav"></div>
+ </div>
+
+ <div class="card">
+  <div class="section-kicker">08 · CONTACT</div><h3>어디서 어떻게 만나는 게 좋을까?</h3>
+  <div id="meetingPlan" class="muted"></div>
+ </div>
+
+ <div class="footer">METAMATCH</div>
+</section>
+</div>
+
+<div id="devPanel" class="dev-panel"><b>DEV · 결과 바로보기</b><div class="dev-row"><button onclick="devFreePreview()">무료 결과</button><button onclick="devPrecisionPreview()">정밀 결과</button></div><small>테스트용 응답을 자동 입력하며 DB에는 저장하지 않습니다.</small><small id="devStatus" style="color:#ffb4b4"></small></div>
+
+<script>
+const importance5=['1 · 전혀 중요하지 않음','2 · 중요하지 않은 편','3 · 보통','4 · 중요한 편','5 · 매우 중요함'];
+const likert5=['1 · 전혀 그렇지 않음','2 · 그렇지 않은 편','3 · 보통','4 · 그런 편','5 · 매우 그렇다'];
+const interest5=['1 · 전혀 관심이 없다','2 · 관심이 적은 편이다','3 · 보통이다','4 · 관심이 많은 편이다','5 · 매우 관심이 많다'];
+const stability5=['1 · 매우 불안정하다','2 · 불안정한 편이다','3 · 보통이다','4 · 안정적인 편이다','5 · 매우 안정적이다'];
+const capacity5=['1 · 현재는 거의 어렵다','2 · 아주 조금은 가능하다','3 · 일정 수준 가능하다','4 · 꽤 적극적으로 가능하다','5 · 우선순위를 높여 투자할 수 있다'];
+
+const questions=[
+ {cat:'원하는 상대',id:'ideal_attraction',type:'choice',text:'다른 조건이 좋아도 외적으로 끌리지 않으면 연애 대상으로 보기 어려운 편인가요?',options:likert5},
+ {cat:'원하는 상대',id:'ideal_selfcare',type:'choice',text:'타고난 외모와 별개로, 상대가 헤어·피부·옷차림·체형·위생 등 자신의 외적인 모습을 꾸준히 관리하는 것은 얼마나 중요한가요?',options:importance5},
+ {cat:'원하는 상대',id:'ideal_econ',type:'matrix',text:'연애·결혼 상대의 경제 조건에서 다음 요소는 각각 얼마나 중요한가요?',hint:'돈이나 직업을 중요하게 봐도 괜찮습니다. 실제 선택 기준을 기준으로 답해주세요.',rows:[
+   ['assets','현재 보유한 자산의 정도'],['income','현재 소득 수준'],['earning','앞으로도 소득을 만들어낼 수 있는 직업·전문성·사업 기반'],['debt','부채가 과도하지 않고 재정적으로 안정되어 있는 것'],['money_mgmt','수입에 맞게 소비·저축·투자·부채를 관리하는 경제관념']
+ ]},
+ {cat:'원하는 상대',id:'ideal_asset_origin',type:'choice',text:'상대가 충분한 자산을 가지고 있다면, 그 자산을 어떤 방식으로 만들었는지도 중요하게 보나요?',options:[
+  '1 · 합법적으로 형성된 자산이라면 방식은 전혀 중요하지 않다','2 · 별로 신경 쓰지 않는다','3 · 어느 정도는 신경 쓴다','4 · 본인의 노동·사업·투자 등으로 만든 자산인지 꽤 중요하게 본다','5 · 자산 규모만큼이나 본인이 어떤 방식으로 만들어냈는지가 매우 중요하다'
+ ]},
+ {cat:'원하는 상대',id:'ideal_emotion',type:'matrix',text:'상대의 정서·관계 특성에서 다음 요소는 각각 얼마나 중요한가요?',hint:'다정한 사람이 좋아야 할 것 같다는 답보다, 실제 연애에서 내가 견디기 어려운 상대를 떠올려 답해주세요.',rows:[
+  ['regulation','감정이 크게 흔들릴 때 스스로 조절할 수 있는 것'],['conflict','갈등이 생겨도 회피하거나 폭발하지 않고 대화할 수 있는 것'],['affection','말·연락·행동 등으로 애정을 충분히 표현하는 것'],['boundary','나의 개인시간·생활·경계를 존중하는 것']
+ ]},
+ {cat:'원하는 상대',id:'ideal_values',type:'choice',text:'상대와 대화가 잘 통하고, 관심사·생각·가치관을 나눌 수 있는 것은 얼마나 중요한가요?',options:importance5},
+ {cat:'원하는 상대',id:'ideal_resource',type:'choice',text:'상대가 연애를 위해 충분한 시간과 관심을 쓰고 필요할 때 일정을 조정할 수 있는 것은 얼마나 중요한가요?',options:importance5},
+
+ {cat:'실제 선택',id:'trade_condition_comfort',type:'choice',text:'둘 중 한 사람에게 더 마음이 갈 가능성이 높은 쪽은?',hint:'A. 객관적인 조건은 훨씬 좋지만 함께 있으면 계속 긴장되는 사람\\nB. 조건은 조금 부족하지만 함께 있으면 편안하고 안심되는 사람',options:['A에 훨씬 가까움','A에 조금 더 가까움','둘 다 비슷함','B에 조금 더 가까움','B에 훨씬 가까움']},
+ {cat:'실제 선택',id:'trade_attraction_stability',type:'choice',text:'둘 중 한 사람과 연애를 시작한다면?',hint:'A. 외적으로 매우 매력적이고 설레지만 연락과 감정표현이 불안정한 사람\\nB. 외적인 끌림은 조금 덜하지만 애정표현과 관계 태도가 꾸준한 사람',options:['A에 훨씬 가까움','A에 조금 더 가까움','둘 다 비슷함','B에 조금 더 가까움','B에 훨씬 가까움']},
+ {cat:'실제 선택',id:'trade_asset_career',type:'choice',text:'둘 중 장기적인 연애 상대로 더 마음이 가는 쪽은?',hint:'A. 이미 상당한 자산이 있지만 직업이나 커리어는 평범한 사람\\nB. 현재 자산은 많지 않지만 직업·전문성과 앞으로의 소득 전망이 매우 좋은 사람',options:['A에 훨씬 가까움','A에 조금 더 가까움','둘 다 비슷함','B에 조금 더 가까움','B에 훨씬 가까움']},
+ {cat:'실제 선택',id:'trade_income_management',type:'choice',text:'둘 중 장기적인 연애 상대로 더 마음이 가는 쪽은?',hint:'A. 소득은 높지만 소비가 크고 돈 관리는 즉흥적인 사람\\nB. 소득은 조금 낮지만 지출·저축·부채를 계획적으로 관리하는 사람',options:['A에 훨씬 가까움','A에 조금 더 가까움','둘 다 비슷함','B에 조금 더 가까움','B에 훨씬 가까움']},
+ {cat:'실제 선택',id:'trade_career_time',type:'choice',text:'둘 중 한 사람이 연인이 된다면?',hint:'A. 경제력과 커리어는 뛰어나지만 항상 바빠 함께할 시간이 적은 사람\\nB. 경제·커리어 조건은 평범하지만 나와 보낼 시간과 여유가 충분한 사람',options:['A에 훨씬 가까움','A에 조금 더 가까움','둘 다 비슷함','B에 조금 더 가까움','B에 훨씬 가까움']},
+
+ {cat:'외적 자기관리',id:'selfcare_interest',type:'choice',text:'평소 자신의 외모·스타일을 더 나아지게 만들 방법에 관심을 가지는 편인가요?',options:interest5},
+ {cat:'외적 자기관리',id:'selfcare_items',type:'multi',text:'지난 한 달 동안 비교적 꾸준히 관리하고 있는 항목을 모두 선택해주세요.',options:['헤어스타일·헤어 관리','피부 관리','옷차림·스타일링','운동·체형 관리','위생·청결','손발·수염·눈썹 등 세부 정돈','치아·구강 관리','특별히 없음'],exclusiveLast:true},
+ {cat:'외적 자기관리',id:'selfcare_routine',type:'choice',text:'외모 관리를 해야겠다고 특별히 마음먹지 않아도 평소 생활 속에서 자연스럽게 유지되는 관리 습관은 어느 정도인가요?',options:[
+  '1 · 특별히 유지하는 관리 습관이 거의 없다','2 · 필요할 때만 관리한다','3 · 몇 가지는 꾸준히 하지만 자주 흐트러진다','4 · 주요 관리 항목은 비교적 꾸준히 유지한다','5 · 대부분의 관리가 일상적인 루틴으로 자리 잡아 있다'
+ ]},
+
+ {cat:'경제 기반',id:'self_income',type:'choice',text:'최근 1년을 기준으로 월평균 개인 세후 소득은 어느 정도인가요?',options:['소득 없음','200만 원 미만','200만~300만 원 미만','300만~500만 원 미만','500만~1,000만 원 미만','1,000만 원 이상','일정하지 않아 계산하기 어려움','응답하고 싶지 않음']},
+ {cat:'경제 기반',id:'self_assets',type:'choice',text:'현재 본인의 순자산은 대략 어느 구간에 해당하나요?',hint:'예금·투자자산·보증금·부동산 등 보유자산에서 대출·부채를 제외한 금액을 기준으로 생각해주세요.',options:['3천만 원 미만','3천만~1억 원 미만','1억~3억 원 미만','3억~10억 원 미만','10억 원 이상','잘 모르겠음','응답하고 싶지 않음']},
+ {cat:'경제 기반',id:'self_asset_origin',type:'choice',text:'현재 자산을 형성하는 데 가장 크게 기여한 것은 무엇인가요?',options:['본인의 근로소득','본인의 사업·프리랜스 소득','본인의 투자','상속·증여·가족의 지원','여러 경로가 비슷하게 기여했다','아직 형성된 자산이 거의 없다','응답하고 싶지 않음']},
+ {cat:'경제 기반',id:'self_earning',type:'choice',text:'현재 하고 있는 일·사업·전문성 등을 기준으로 앞으로 2~3년 동안 꾸준히 소득을 만들어낼 가능성은 어느 정도라고 생각하나요?',options:stability5},
+ {cat:'경제 기반',id:'self_debt',type:'choice',text:'현재 부채 상환이 생활에 주는 부담은 어느 정도인가요?',options:['부채가 없다','부채는 있지만 생활에 거의 부담이 없다','어느 정도 부담이 있다','상당한 부담이 있다','생활에 매우 큰 부담이 있다','잘 모르겠음','응답하고 싶지 않음']},
+ {cat:'경제 기반',id:'self_money_mgmt',type:'choice',text:'현재 본인의 돈 관리 방식과 가장 가까운 것은 무엇인가요?',options:['수입과 지출을 거의 파악하지 않는다','대략 알고 있지만 계획적으로 관리하지는 않는다','주요 지출과 잔액 정도는 확인한다','지출과 저축을 어느 정도 계획하며 관리한다','저축·투자·부채·비상자금을 목적별로 관리한다']},
+
+ {cat:'생활·가치관',id:'life_items',type:'multi',text:'현재 대부분 스스로 안정적으로 관리하고 있는 생활 영역을 모두 선택해주세요.',options:['식사','청소·세탁','수면','일정·약속','지출·금융','병원·행정','건강관리','주거관리','특별히 없음'],exclusiveLast:true},
+ {cat:'생활·가치관',id:'self_values',type:'choice',text:'나는 연애에서 중요하게 생각하는 가치관·생활방식·경계를 비교적 분명하게 알고 있다.',options:likert5},
+ {cat:'생활·가치관',id:'self_dialogue',type:'choice',text:'관심 있는 주제에 대해 내 생각을 설명하고, 상대가 다른 의견을 가져도 대화를 이어갈 수 있다.',options:likert5},
+
+ {cat:'정서·관계',id:'emotion_regulation',type:'choice',text:'연인에게 크게 서운한 일이 생겨 감정이 많이 올라왔을 때 실제 나와 가장 가까운 반응은?',options:['바로 따지거나 연락을 계속한다','연락이나 표현을 줄이고 상대가 알아주기를 기다린다','겉으로는 괜찮은 척하지만 속으로 오래 쌓아둔다','잠시 진정한 뒤 무엇이 서운했는지 정리해서 말한다','감정이 큰 상태임을 알리고 대화할 시간을 정한 뒤 이야기한다']},
+ {cat:'정서·관계',id:'emotion_conflict',type:'choice',text:'연인과 중요한 문제에서 의견이 크게 다를 때 실제 나와 가장 가까운 행동은?',options:['내 입장을 상대가 받아들일 때까지 계속 설득한다','갈등이 커지는 것이 싫어 대화를 중단한다','관계를 위해 일단 내가 맞춰준다','상대의 이유를 듣고 내 입장도 설명한다','양보하기 어려운 부분과 조정 가능한 부분을 나눠 합의점을 찾는다']},
+ {cat:'정서·관계',id:'emotion_repair',type:'choice',text:'큰 갈등이 일단 끝난 뒤 실제 나와 가장 가까운 행동은?',options:['끝난 일이므로 되도록 다시 생각하지 않는다','상대가 먼저 꺼내지 않으면 다시 이야기하지 않는다','내 행동 중 문제가 있었던 부분을 혼자 돌아본다','서로 무엇이 힘들었는지 다시 이야기해본다','비슷한 일이 반복되지 않도록 다음에는 어떻게 할지 함께 정한다']},
+ {cat:'정서·관계',id:'emotion_affection',type:'choice',text:'좋아하는 사람에게 애정과 관심을 표현하는 편인가요?',options:['1 · 표현을 거의 하지 않는다','2 · 표현이 적은 편이다','3 · 보통이다','4 · 비교적 자주 표현한다','5 · 말과 행동으로 매우 적극적으로 표현한다']},
+ {cat:'정서·관계',id:'emotion_boundary',type:'choice',text:'상대가 힘들어하더라도 내가 감당하기 어려운 요구에는 선을 그을 수 있다.',options:likert5},
+
+ {cat:'관계 자원',id:'relation_time',type:'choice',text:'일이나 개인 일정이 바쁜 시기에도 연애 상대를 위해 시간을 조정할 수 있는 정도는?',options:['1 · 거의 조정하기 어렵다','2 · 기존 일정이 비어 있을 때만 가능하다','3 · 미리 약속하면 일정한 시간을 확보할 수 있다','4 · 필요하다면 다른 일정을 일부 조정할 수 있다','5 · 연애를 중요한 일정으로 두고 안정적으로 시간을 확보할 수 있다']},
+ {cat:'관계 자원',id:'relation_support',type:'choice',text:'내가 매우 지친 날 연인이 힘든 일이 있어 이야기를 하고 싶어 한다면 실제 나와 가장 가까운 반응은?',options:['연락을 피하거나 대화를 최대한 짧게 끝낸다','지금은 여유가 없다고 말하고 대화를 종료한다','짧게 상황을 듣고 지금 가능한 만큼 반응한다','우선 핵심을 듣고 충분히 이야기할 수 있는 시간을 다시 구체적으로 정한다','내 상태와 관계없이 상대가 괜찮아질 때까지 계속 들어준다']},
+
+ {cat:'자기인식',id:'selfview_conditions',type:'choice',text:'나는 연애 상대를 고를 때 조건을 많이 따지는 편이라고 생각한다.',options:likert5},
+ {cat:'자기인식',id:'selfview_accommodation',type:'choice',text:'나는 연애를 시작하면 내 시간과 생활을 상대에게 꽤 많이 맞춰주는 편이라고 생각한다.',options:likert5},
+
+ {cat:'전략',id:'strategy_flex',type:'choice',text:'마음에 드는 사람이라면 내가 중요하게 생각했던 조건 한두 가지가 기대보다 낮더라도 다른 장점이 충분하면 만나볼 수 있다.',options:likert5},
+ {cat:'전략',id:'strategy_change',type:'choice',text:'정말 원하는 이상형이 나타났고, 관계를 이어가기 위해 내가 바꿀 수 있는 부분이 분명하다면 필요한 자기관리·생활습관·관계방식을 바꿀 의향이 있다.',options:likert5},
+ {cat:'전략',id:'strategy_capacity',type:'choice',text:'앞으로 3개월 동안 나를 변화시키는 데 실제로 투입할 수 있는 시간·비용·생활 여건은 어느 정도인가요?',options:capacity5},
+ {cat:'전략',id:'strategy_opportunity',type:'choice',text:'현재 생활에서 새로운 연애 후보와 접점이 생기는 빈도는 어느 정도인가요?',hint:'소개, 데이팅 앱, 취미·모임, 직장·학교 등 모든 경로를 포함해 생각해주세요.',options:['1 · 거의 없다','2 · 2~3개월에 한 번 이하','3 · 한 달에 한 번 정도','4 · 한 달에 2~3번 정도','5 · 일주일에 한 번 이상']}
+];
+
+const catCopy={
+ '원하는 상대':['PART 01','내가 원하는 사람','여기서는 솔직할수록 결과가 정확해집니다. 외모를 중요하게 봐도, 돈을 중요하게 봐도 괜찮습니다. 좋은 사람처럼 보일 답보다 실제로 누구에게 끌리고 누구를 선택하는지를 기준으로 답해주세요.'],
+ '실제 선택':['PART 02','실제로 하나를 선택해야 한다면','둘 다 가질 수 없는 상황에서 무엇을 선택하는지를 봅니다. 정답은 없습니다.'],
+ '외적 자기관리':['PART 03','현재의 나 · 외적 자기관리','타고난 외모는 평가하지 않습니다. 관심이 실제 행동과 루틴으로 이어지는지만 봅니다.'],
+ '경제 기반':['PART 04','현재의 나 · 경제 기반','자산, 소득, 앞으로의 소득 창출력, 부채, 돈 관리 행동을 서로 다른 데이터로 봅니다.'],
+ '생활·가치관':['PART 05','현재의 나 · 생활과 가치관','생활 운영과 가치관을 얼마나 스스로 정리하고 있는지 봅니다.'],
+ '정서·관계':['PART 06','현재의 나 · 정서와 관계','좋은 사람처럼 보이는 답보다 실제 갈등 상황에서의 행동을 기준으로 답해주세요.'],
+ '관계 자원':['PART 07','관계에 제공 가능한 자원','자기희생이 아니라 실제로 지속할 수 있는 시간과 정서적 여유를 봅니다.'],
+ '자기인식':['PART 08','내가 생각하는 나','앞에서 답한 실제 선택과 내가 생각하는 나 사이의 차이를 확인합니다.'],
+ '전략':['PART 09','현실적인 연애 전략','기준의 유연성, 변화 의향, 실제 여력과 만남 기회를 확인합니다.']
+};
+
+let demographics={gender:'',target:'',age:'',mbti:''};
+let answers={},qi=0,precisionQuestions=[],precisionAnswers=[],pi=0,DEV_PREVIEW=false,freeSaved=false,precisionSaved=false,lastPrecisionAnalysis=null;
+const SURVEY_VERSION='v7.4-deploy-data';
+const SCORING_VERSION='4.0-beta';
+const SUPABASE_URL='https://ntprvuoqxrcndponwwuz.supabase.co';
+const SUPABASE_KEY='sb_publishable_FzSLo2PAlVUBs3vLjfkjbQ_OwaSTKg_';
+let responseId=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'r-'+Date.now()+'-'+Math.random().toString(16).slice(2);
+
+function showOnly(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+function pickDemo(k,v,el){demographics[k]=v;const id=k==='gender'?'genderOptions':k==='target'?'targetOptions':'ageOptions';document.querySelectorAll('#'+id+' .option').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');updateGate()}
+function handleMbti(el){const raw=el.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);el.value=raw;const valid=['ISTJ','ISFJ','INFJ','INTJ','ISTP','ISFP','INFP','INTP','ESTP','ESFP','ENFP','ENTP','ESTJ','ESFJ','ENFJ','ENTJ'];demographics.mbti=valid.includes(raw)?raw:'';document.getElementById('mbtiError').style.display=raw&&!demographics.mbti?'block':'none';updateGate()}
+function updateGate(){document.getElementById('demoNext').disabled=!(demographics.gender&&demographics.target&&demographics.age&&demographics.mbti&&document.getElementById('dataConsent').checked)}
+function showCategory(cat,cb){const c=catCopy[cat];document.getElementById('catPart').textContent=c[0];document.getElementById('catTitle').textContent=c[1];document.getElementById('catDesc').textContent=c[2];document.getElementById('catNext').onclick=cb;showOnly('category')}
+function startQuiz(){qi=0;answers={};showCategory(questions[0].cat,()=>{renderQuiz();showOnly('quiz')})}
+
+function renderHint(q){
+ if(!q.hint)return '';
+ const normalized=q.hint.replace(/\\n/g,'\n');
+ const lines=normalized.split('\n');
+ if(lines.length>1 && lines.every(x=>/^[AB]\./.test(x.trim()))){
+   const body=lines.map(line=>{
+     const m=line.trim().match(/^([AB])\.\s*(.*)$/);
+     return m?`<span class="ab-line"><span class="ab-key">${m[1]}.</span>${m[2]}</span>`:line;
+   }).join('');
+   return `<div class="hint">${body}</div>`;
+ }
+ return `<div class="hint">${normalized.replace(/\n/g,'<br>')}</div>`;
+}
+function renderQuiz(){
+ const q=questions[qi], box=document.getElementById('quizOptions'),cont=document.getElementById('quizContinueWrap');
+ document.getElementById('quizNum').textContent=`${String(qi+1).padStart(2,'0')} / ${questions.length} · ${q.cat}`;
+ document.getElementById('quizText').textContent=q.text;
+ document.getElementById('quizHint').innerHTML=renderHint(q);
+ document.getElementById('quizBar').style.width=`${(qi+1)/questions.length*100}%`;
+ document.getElementById('quizPrev').style.display=qi?'block':'none';
+ box.innerHTML=''; cont.style.display='none';
+
+ if(q.type==='choice'){
+  q.options.forEach((o,i)=>{
+   const d=document.createElement('div');d.className='option'+(answers[q.id]===i?' selected':'');d.textContent=o;
+   d.onclick=()=>{answers[q.id]=i;setTimeout(nextQuiz,75)};box.appendChild(d);
+  });
+ }else if(q.type==='multi'){
+  if(!Array.isArray(answers[q.id]))answers[q.id]=[];
+  const list=document.createElement('div');list.className='checkbox-list';
+  q.options.forEach((o,i)=>{
+   const lab=document.createElement('label');lab.className='check-option'+(answers[q.id].includes(i)?' selected':'');
+   const inp=document.createElement('input');inp.type='checkbox';inp.checked=answers[q.id].includes(i);
+   const span=document.createElement('span');span.textContent=o;
+   inp.onchange=()=>{
+    let arr=[...(answers[q.id]||[])];
+    if(q.exclusiveLast&&i===q.options.length-1){arr=inp.checked?[i]:[]}
+    else{
+      arr=arr.filter(x=>x!==q.options.length-1);
+      if(inp.checked&&!arr.includes(i))arr.push(i); if(!inp.checked)arr=arr.filter(x=>x!==i);
     }
-
-    function saveToLocalStorage() {
-      localStorage.setItem('cast_stories_v7', JSON.stringify(stories));
-      localStorage.setItem('cast_current_story_v7', currentStoryId);
-      localStorage.setItem('cast_characters_v7', JSON.stringify(characters));
-    }
-
-    function getCurrentStoryCharacters() {
-      return characters.filter(c => (c.storyId || stories[0].id) === currentStoryId);
-    }
-
-    function renderStoryOptions() {
-      storySelect.innerHTML = '';
-      stories.forEach(story => {
-        const option = document.createElement('option');
-        option.value = story.id;
-        option.innerText = `📖 ${story.name}`;
-        if (story.id === currentStoryId) option.selected = true;
-        storySelect.appendChild(option);
-      });
-    }
-
-    function setupEventListeners() {
-      storySelect.onchange = (e) => {
-        currentStoryId = e.target.value;
-        saveToLocalStorage();
-        activeTag = null;
-        renderTags();
-        renderCards(getCurrentStoryCharacters());
-        if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
-      };
-
-      addStoryBtn.onclick = () => {
-        const storyName = prompt('새로 추가할 작품/이야기 제목을 입력하세요:');
-        if (storyName && storyName.trim()) {
-          const newStory = { id: 'story_' + Date.now(), name: storyName.trim() };
-          stories.push(newStory);
-          currentStoryId = newStory.id;
-          saveToLocalStorage();
-          renderStoryOptions();
-          renderTags();
-          renderCards(getCurrentStoryCharacters());
-        }
-      };
-
-      deleteStoryBtn.onclick = () => {
-        if (stories.length <= 1) {
-          alert('최소 하나 이상의 작품은 존재해야 합니다.');
-          return;
-        }
-        const currentStory = stories.find(s => s.id === currentStoryId);
-        if (confirm(`'${currentStory.name}' 작품과 해당 작품의 모든 캐릭터를 삭제하시겠습니까?`)) {
-          characters = characters.filter(c => c.storyId !== currentStoryId);
-          stories = stories.filter(s => s.id !== currentStoryId);
-          currentStoryId = stories[0].id;
-          saveToLocalStorage();
-          renderStoryOptions();
-          renderTags();
-          renderCards(getCurrentStoryCharacters());
-        }
-      };
-
-      tabCardsBtn.onclick = () => switchView('cards');
-      tabGraphBtn.onclick = () => switchView('graph');
-
-      backupMenuBtn.onclick = (e) => {
-        e.stopPropagation();
-        backupDropdown.classList.toggle('hidden');
-      };
-      document.onclick = () => backupDropdown.classList.add('hidden');
-
-      exportJsonBtn.onclick = exportJSON;
-      importJsonInput.onchange = importJSON;
-
-      searchInput.oninput = () => renderCards(getFilteredCharacters());
-
-      openModalBtn.onclick = () => openCharModal();
-      closeModalBtn.onclick = () => modal.classList.add('hidden');
-      cancelBtn.onclick = () => modal.classList.add('hidden');
-      closeDetailModalBtn.onclick = () => detailModal.classList.add('hidden');
-
-      addFieldBtn.onclick = () => addDynamicFieldInput('', '');
-      addRelationBtn.onclick = () => addRelationInput('', '');
-
-      layoutSelect.onchange = () => renderRelationshipGraph();
-      downloadGraphImgBtn.onclick = downloadGraphImage;
-
-      charForm.onsubmit = handleFormSubmit;
-    }
-
-    function switchView(viewName) {
-      if (viewName === 'cards') {
-        cardsView.classList.remove('hidden');
-        graphView.classList.add('hidden');
-        tabCardsBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm";
-        tabGraphBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition";
-      } else {
-        cardsView.classList.add('hidden');
-        graphView.classList.remove('hidden');
-        tabGraphBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm";
-        tabCardsBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition";
-        renderRelationshipGraph();
-      }
-    }
-
-    function renderRelationshipGraph() {
-      const container = document.getElementById('networkCanvas');
-      const layoutStyle = layoutSelect.value;
-      const currentList = getCurrentStoryCharacters();
-      
-      const nodesArray = [];
-      const edgesArray = [];
-      const existingNodes = new Set();
-
-      currentList.forEach(char => {
-        existingNodes.add(char.name);
-        nodesArray.push({
-          id: char.name,
-          label: `  ${char.name}  `,
-          title: char.oneLiner ? `${char.name}: ${char.oneLiner}` : char.name,
-          shape: 'box',
-          margin: { top: 10, bottom: 10, left: 16, right: 16 },
-          color: {
-            background: '#ffffff',
-            border: '#8b5cf6',
-            highlight: { background: '#f3e8ff', border: '#7c3aed' }
-          },
-          font: { size: 14, face: 'sans-serif', color: '#111827', bold: true },
-          borderWidth: 2,
-          shadow: { enabled: true, color: 'rgba(0,0,0,0.05)', size: 6, x: 0, y: 2 }
-        });
-      });
-
-      currentList.forEach(char => {
-        if (char.relations) {
-          char.relations.forEach(rel => {
-            if (rel.targetName) {
-              if (!existingNodes.has(rel.targetName)) {
-                existingNodes.add(rel.targetName);
-                nodesArray.push({
-                  id: rel.targetName,
-                  label: `  ${rel.targetName}  `,
-                  shape: 'box',
-                  margin: { top: 8, bottom: 8, left: 14, right: 14 },
-                  color: {
-                    background: '#f9fafb',
-                    border: '#d1d5db',
-                    highlight: { background: '#f3f4f6', border: '#9ca3af' }
-                  },
-                  font: { size: 13, color: '#4b5563' },
-                  borderWidth: 1,
-                  shapeProperties: { borderDashes: true }
-                });
-              }
-
-              edgesArray.push({
-                from: char.name,
-                to: rel.targetName,
-                label: ` ${rel.label || ''} `,
-                arrows: { to: { enabled: true, scaleFactor: 0.8 } },
-                font: { size: 11, color: '#6b7280', strokeWidth: 4, strokeColor: '#ffffff' },
-                color: { color: '#a78bfa', highlight: '#7c3aed' },
-                width: 2,
-                smooth: { type: 'cubicBezier', forceDirection: 'none', roundness: 0.4 }
-              });
-            }
-          });
-        }
-      });
-
-      const data = {
-        nodes: new vis.DataSet(nodesArray),
-        edges: new vis.DataSet(edgesArray)
-      };
-
-      let options = {
-        interaction: { hover: true, dragNodes: true, zoomView: true },
-        physics: { enabled: false }
-      };
-
-      if (layoutStyle === 'hierarchical-UD') {
-        options.layout = {
-          hierarchical: {
-            enabled: true,
-            direction: 'UD',
-            sortMethod: 'directed',
-            nodeSpacing: 160,
-            levelSeparation: 120
-          }
-        };
-      } else if (layoutStyle === 'hierarchical-LR') {
-        options.layout = {
-          hierarchical: {
-            enabled: true,
-            direction: 'LR',
-            sortMethod: 'directed',
-            nodeSpacing: 100,
-            levelSeparation: 200
-          }
-        };
-      } else if (layoutStyle === 'hub') {
-        options.physics = {
-          enabled: true,
-          solver: 'forceAtlas2Based',
-          stabilization: { iterations: 150 }
-        };
-      }
-
-      if (networkInstance) {
-        networkInstance.destroy();
-      }
-      networkInstance = new vis.Network(container, data, options);
-
-      if (layoutStyle === 'hub') {
-        networkInstance.once('stabilizationIterationsDone', function () {
-          networkInstance.setOptions({ physics: { enabled: false } });
-        });
-      }
-    }
-
-    function downloadGraphImage() {
-      const canvasArea = document.getElementById('networkCanvas');
-      html2canvas(canvasArea).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `cast_mindmap_${new Date().toISOString().slice(0,10)}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      });
-    }
-
-    function getFilteredCharacters() {
-      const query = searchInput.value.trim().toLowerCase();
-      const currentList = getCurrentStoryCharacters();
-      return currentList.filter(char => {
-        if (activeTag && !char.tags.includes(activeTag)) return false;
-        if (!query) return true;
-        const nameMatch = char.name.toLowerCase().includes(query);
-        const oneLinerMatch = (char.oneLiner || '').toLowerCase().includes(query);
-        const tagMatch = char.tags.some(t => t.toLowerCase().includes(query));
-        const memoMatch = (char.memo || '').toLowerCase().includes(query);
-        const fieldMatch = char.fields ? char.fields.some(f => f.label.toLowerCase().includes(query) || f.value.toLowerCase().includes(query)) : false;
-        const relMatch = char.relations ? char.relations.some(r => r.targetName.toLowerCase().includes(query) || r.label.toLowerCase().includes(query)) : false;
-
-        return nameMatch || oneLinerMatch || tagMatch || memoMatch || fieldMatch || relMatch;
-      });
-    }
-
-    function renderTags() {
-      const currentList = getCurrentStoryCharacters();
-      const allTags = Array.from(new Set(currentList.flatMap(c => c.tags || [])));
-      tagContainer.innerHTML = '';
-      if (allTags.length === 0) return;
-
-      const allBtn = document.createElement('button');
-      allBtn.className = `text-xs px-3 py-1.5 rounded-xl font-medium transition ${activeTag === null ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'}`;
-      allBtn.innerText = '전체 보기';
-      allBtn.onclick = () => { activeTag = null; renderTags(); renderCards(getFilteredCharacters()); };
-      tagContainer.appendChild(allBtn);
-
-      allTags.forEach(tag => {
-        const btn = document.createElement('button');
-        const isActive = activeTag === tag;
-        btn.className = `text-xs px-3 py-1.5 rounded-xl font-medium transition ${isActive ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'}`;
-        btn.innerText = `#${tag}`;
-        btn.onclick = () => {
-          activeTag = isActive ? null : tag;
-          renderTags();
-          renderCards(getFilteredCharacters());
-        };
-        tagContainer.appendChild(btn);
-      });
-    }
-
-    function renderCards(list) {
-      grid.innerHTML = '';
-      if (list.length === 0) {
-        emptyState.classList.remove('hidden');
-        return;
-      }
-      emptyState.classList.add('hidden');
-
-      list.forEach(char => {
-        const card = document.createElement('div');
-        card.className = "bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between cursor-pointer group";
-        card.onclick = (e) => {
-          if (!e.target.closest('button')) openDetailModal(char.id);
-        };
-
-        const topFields = char.fields ? char.fields.slice(0, 2) : [];
-        const topRelations = char.relations ? char.relations.slice(0, 2) : [];
-
-        card.innerHTML = `
-          <div>
-            <div class="flex items-start justify-between mb-2">
-              <h3 class="text-lg font-bold text-gray-900 group-hover:text-black transition">${escapeHtml(char.name)}</h3>
-              <div class="flex items-center gap-1">
-                <button onclick="copyPrompt('${char.id}')" title="프롬프트 복사" class="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition">
-                  <i data-lucide="copy" class="w-4 h-4"></i>
-                </button>
-                <button onclick="openCharModal('${char.id}')" title="수정" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
-                  <i data-lucide="edit-3" class="w-4 h-4"></i>
-                </button>
-              </div>
-            </div>
-            
-            <p class="text-xs text-gray-500 font-medium mb-3 line-clamp-1">${escapeHtml(char.oneLiner || '한 줄 소개가 없습니다.')}</p>
-            
-            <div class="flex flex-wrap gap-1.5 mb-4">
-              ${(char.tags || []).map(t => `<span class="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">#${escapeHtml(t)}</span>`).join('')}
-            </div>
-
-            ${topRelations.length > 0 ? `
-              <div class="flex flex-wrap gap-1 mb-3">
-                ${topRelations.map(r => `<span class="text-[10px] bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-md">➔ ${escapeHtml(r.targetName)} (${escapeHtml(r.label)})</span>`).join('')}
-              </div>
-            ` : ''}
-
-            ${topFields.length > 0 ? `
-              <div class="space-y-1.5 text-xs text-gray-600 bg-gray-50 p-3 rounded-xl mb-3">
-                ${topFields.map(f => `<div class="truncate"><strong class="text-gray-800">${escapeHtml(f.label)}:</strong> ${escapeHtml(f.value)}</div>`).join('')}
-              </div>
-            ` : ''}
-          </div>
-
-          ${char.memo ? `<div class="text-[11px] text-gray-400 border-t border-gray-100 pt-2.5 truncate">📝 ${escapeHtml(char.memo)}</div>` : ''}
-        `;
-        grid.appendChild(card);
-      });
-      lucide.createIcons();
-    }
-
-    function addRelationInput(targetName = '', label = '') {
-      const relDiv = document.createElement('div');
-      relDiv.className = "flex gap-2 items-center relation-row";
-      relDiv.innerHTML = `
-        <span class="text-xs text-gray-400">➔</span>
-        <input type="text" placeholder="대상 이름 (예: 윤아리엘)" value="${escapeHtml(targetName)}" class="rel-target w-1/2 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
-        <input type="text" placeholder="관계 (예: 짝사랑)" value="${escapeHtml(label)}" class="rel-label flex-1 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
-        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-        </button>
-      `;
-      relationsContainer.appendChild(relDiv);
-      lucide.createIcons();
-    }
-
-    function addDynamicFieldInput(label = '', value = '') {
-      const fieldDiv = document.createElement('div');
-      fieldDiv.className = "flex gap-2 items-start field-row";
-      fieldDiv.innerHTML = `
-        <input type="text" placeholder="항목명" value="${escapeHtml(label)}" class="field-label w-1/3 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
-        <textarea rows="2" placeholder="내용 입력..." class="field-value flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5">${escapeHtml(value)}</textarea>
-        <button type="button" onclick="this.parentElement.remove()" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
-          <i data-lucide="trash-2" class="w-4 h-4"></i>
-        </button>
-      `;
-      dynamicFieldsContainer.appendChild(fieldDiv);
-      lucide.createIcons();
-    }
-
-    function openCharModal(charId = null) {
-      charForm.reset();
-      dynamicFieldsContainer.innerHTML = '';
-      relationsContainer.innerHTML = '';
-
-      if (charId) {
-        const char = characters.find(c => c.id === charId);
-        if (!char) return;
-        
-        document.getElementById('charId').value = char.id;
-        document.getElementById('modalTitle').innerText = '캐릭터 프로필 수정';
-        document.getElementById('nameInput').value = char.name;
-        document.getElementById('oneLinerInput').value = char.oneLiner || '';
-        document.getElementById('tagsInput').value = (char.tags || []).join(', ');
-        document.getElementById('memoInput').value = char.memo || '';
-
-        if (char.relations && char.relations.length > 0) {
-          char.relations.forEach(r => addRelationInput(r.targetName, r.label));
-        }
-
-        if (char.fields && char.fields.length > 0) {
-          char.fields.forEach(f => addDynamicFieldInput(f.label, f.value));
-        } else {
-          DEFAULT_FIELDS.forEach(f => addDynamicFieldInput(f.label, ''));
-        }
-      } else {
-        document.getElementById('charId').value = '';
-        document.getElementById('modalTitle').innerText = '새 캐릭터 등록';
-        DEFAULT_FIELDS.forEach(f => addDynamicFieldInput(f.label, ''));
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    function handleFormSubmit(e) {
-      e.preventDefault();
-      const id = document.getElementById('charId').value;
-      const name = document.getElementById('nameInput').value.trim();
-      const oneLiner = document.getElementById('oneLinerInput').value.trim();
-      const tagsStr = document.getElementById('tagsInput').value;
-      const memo = document.getElementById('memoInput').value.trim();
-
-      const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
-
-      const relRows = relationsContainer.querySelectorAll('.relation-row');
-      const relations = [];
-      relRows.forEach(row => {
-        const targetName = row.querySelector('.rel-target').value.trim();
-        const label = row.querySelector('.rel-label').value.trim();
-        if (targetName) relations.push({ targetName, label });
-      });
-
-      const fieldRows = dynamicFieldsContainer.querySelectorAll('.field-row');
-      const fields = [];
-      fieldRows.forEach(row => {
-        const label = row.querySelector('.field-label').value.trim();
-        const value = row.querySelector('.field-value').value.trim();
-        if (label || value) fields.push({ label: label || '항목', value });
-      });
-
-      if (id) {
-        const index = characters.findIndex(c => c.id === id);
-        if (index !== -1) {
-          characters[index] = { ...characters[index], name, oneLiner, tags, relations, fields, memo };
-        }
-      } else {
-        const newChar = { id: Date.now().toString(), storyId: currentStoryId, name, oneLiner, tags, relations, fields, memo };
-        characters.unshift(newChar);
-      }
-
-      saveToLocalStorage();
-      renderTags();
-      renderCards(getFilteredCharacters());
-      if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
-      modal.classList.add('hidden');
-    }
-
-    function openDetailModal(id) {
-      const char = characters.find(c => c.id === id);
-      if (!char) return;
-
-      detailName.innerText = char.name;
-      detailOneLiner.innerText = char.oneLiner || '한 줄 소개가 없습니다.';
-      detailTags.innerHTML = (char.tags || []).map(t => `<span class="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg">#${escapeHtml(t)}</span>`).join('');
-
-      detailRelations.innerHTML = '';
-      if (char.relations && char.relations.length > 0) {
-        char.relations.forEach(r => {
-          const span = document.createElement('span');
-          span.className = "text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-xl";
-          span.innerText = `➔ ${r.targetName} (${r.label || '관계'})`;
-          detailRelations.appendChild(span);
-        });
-        detailRelationsContainer.classList.remove('hidden');
-      } else {
-        detailRelationsContainer.classList.add('hidden');
-      }
-
-      detailFields.innerHTML = '';
-      if (char.fields && char.fields.length > 0) {
-        char.fields.forEach(f => {
-          const item = document.createElement('div');
-          item.className = "bg-gray-50 border border-gray-100 p-3.5 rounded-xl";
-          item.innerHTML = `
-            <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${escapeHtml(f.label)}</div>
-            <div class="text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(f.value || '-')}</div>
-          `;
-          detailFields.appendChild(item);
-        });
-      }
-
-      if (char.memo) {
-        detailMemo.innerText = char.memo;
-        detailMemoContainer.classList.remove('hidden');
-      } else {
-        detailMemoContainer.classList.add('hidden');
-      }
-
-      detailCopyBtn.onclick = () => copyPrompt(char.id);
-      detailEditBtn.onclick = () => { detailModal.classList.add('hidden'); openCharModal(char.id); };
-      detailDeleteBtn.onclick = () => {
-        if (confirm(`'${char.name}' 캐릭터를 삭제하시겠습니까?`)) {
-          characters = characters.filter(c => c.id !== char.id);
-          saveToLocalStorage();
-          renderTags();
-          renderCards(getFilteredCharacters());
-          if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
-          detailModal.classList.add('hidden');
-        }
-      };
-
-      detailModal.classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    window.copyPrompt = (id) => {
-      const char = characters.find(c => c.id === id);
-      if (!char) return;
-
-      let promptText = `[캐릭터 프로필: ${char.name}]\n`;
-      if (char.oneLiner) promptText += `■ 한줄소개: ${char.oneLiner}\n`;
-      if (char.tags && char.tags.length > 0) promptText += `■ 태그: ${char.tags.join(', ')}\n`;
-      if (char.relations && char.relations.length > 0) {
-        promptText += `■ 관계: ` + char.relations.map(r => `${r.targetName}(${r.label})`).join(', ') + `\n`;
-      }
-      if (char.fields && char.fields.length > 0) {
-        char.fields.forEach(f => { promptText += `■ ${f.label}: ${f.value || '-'}\n`; });
-      }
-      if (char.memo) promptText += `■ 자유 메모: ${char.memo}\n`;
-
-      navigator.clipboard.writeText(promptText).then(() => {
-        alert(`'${char.name}'의 캐릭터 프롬프트가 복사되었습니다!`);
-      });
-    };
-
-    function exportJSON() {
-      const exportData = { stories, characters };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `cast_backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const importedData = JSON.parse(event.target.result);
-          if (importedData.stories && importedData.characters) {
-            if (confirm(`전체 작품 및 캐릭터 데이터로 덮어쓰시겠습니까?`)) {
-              stories = importedData.stories;
-              characters = importedData.characters;
-              currentStoryId = stories[0].id;
-              saveToLocalStorage();
-              renderStoryOptions();
-              renderTags();
-              renderCards(getCurrentStoryCharacters());
-              if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
-              alert('복원이 완료되었습니다!');
-            }
-          }
-        } catch (err) { alert('JSON 파일을 읽는 중 오류가 발생했습니다.'); }
-      };
-      reader.readAsText(file);
-    }
-
-    function escapeHtml(str) {
-      return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&#039;").replace(/'/g, "&#039;") : '';
-    }
-
-    init();
-  </script>
+    answers[q.id]=arr;renderQuiz();
+   };
+   lab.append(inp,span);list.appendChild(lab);
+  });box.appendChild(list);cont.style.display='block';document.getElementById('quizContinue').disabled=!(answers[q.id]&&answers[q.id].length);
+ }else if(q.type==='matrix'){
+  if(typeof answers[q.id]!=='object'||Array.isArray(answers[q.id])||answers[q.id]===null)answers[q.id]={};
+  const m=document.createElement('div');m.className='matrix';
+  q.rows.forEach(([rid,label])=>{
+   const row=document.createElement('div');row.className='matrix-row';
+   row.innerHTML=`<div class="matrix-title">${label}</div>`;
+   const sc=document.createElement('div');sc.className='scale5';
+   [0,1,2,3,4].forEach(i=>{const b=document.createElement('button');b.type='button';b.textContent=i+1;b.className=answers[q.id][rid]===i?'selected':'';b.onclick=()=>{answers[q.id][rid]=i;renderQuiz()};sc.appendChild(b)});
+   row.appendChild(sc);
+   const ls=document.createElement('div');ls.className='scale-labels';ls.innerHTML='<span>전혀 중요하지 않음</span><span>매우 중요함</span>';row.appendChild(ls);m.appendChild(row);
+  });box.appendChild(m);cont.style.display='block';document.getElementById('quizContinue').disabled=!q.rows.every(([rid])=>Number.isInteger(answers[q.id][rid]));
+ }
+}
+function continueComplex(){nextQuiz()}
+function nextQuiz(){
+ const old=questions[qi].cat;
+ if(qi<questions.length-1){qi++;const nc=questions[qi].cat;if(nc!==old)showCategory(nc,()=>{renderQuiz();showOnly('quiz')});else{renderQuiz();showOnly('quiz')}}
+ else{renderFree();showOnly('free')}
+}
+function prevQuiz(){if(qi){qi--;renderQuiz();showOnly('quiz')}}
+
+const pct5=v=>Number.isInteger(v)?v/4*100:null;
+const avgValid=xs=>{const a=xs.filter(x=>typeof x==='number'&&!Number.isNaN(x));return a.length?a.reduce((s,x)=>s+x,0)/a.length:null};
+const clamp=(v,min=0,max=100)=>Math.max(min,Math.min(max,v));
+const level=v=>v>=80?'매우 높은 편':v>=65?'높은 편':v>=45?'보통':v>=30?'낮은 편':'매우 낮은 편';
+const arrCountScore=(arr,total,last)=>Array.isArray(arr)?(arr.includes(last)?0:Math.min(100,arr.length/Math.max(1,total-1)*100)):0;
+
+function incomeScore(v){if(!Number.isInteger(v)||v>=6)return null;return [5,22,40,58,78,100][v]}
+function assetScore(v){if(!Number.isInteger(v)||v>=5)return null;return [10,32,55,78,100][v]}
+function debtStabilityScore(v){if(!Number.isInteger(v)||v>=5)return null;return [100,82,58,28,5][v]}
+
+function analyze(){
+ const econWantObj=answers.ideal_econ||{}, emoWantObj=answers.ideal_emotion||{};
+ const want={
+  attraction:pct5(answers.ideal_attraction),
+  selfcare:pct5(answers.ideal_selfcare),
+  econ:{
+   assets:pct5(econWantObj.assets),income:pct5(econWantObj.income),earning:pct5(econWantObj.earning),debt:pct5(econWantObj.debt),money_mgmt:pct5(econWantObj.money_mgmt)
+  },
+  assetOrigin:pct5(answers.ideal_asset_origin),
+  emotion:{
+   regulation:pct5(emoWantObj.regulation),conflict:pct5(emoWantObj.conflict),affection:pct5(emoWantObj.affection),boundary:pct5(emoWantObj.boundary)
+  },
+  values:pct5(answers.ideal_values),
+  resource:pct5(answers.ideal_resource)
+ };
+ want.economy=avgValid(Object.values(want.econ));want.emotional=avgValid(Object.values(want.emotion));
+
+ const selfcare=avgValid([pct5(answers.selfcare_interest)*.25,arrCountScore(answers.selfcare_items,8,7)*.35,pct5(answers.selfcare_routine)*.40].map((x,i)=>x/([.25,.35,.40][i]))); // replaced below
+ const selfcareScore=avgValid([pct5(answers.selfcare_interest),arrCountScore(answers.selfcare_items,8,7),pct5(answers.selfcare_routine)]);
+ const economy={
+  assets:assetScore(answers.self_assets),income:incomeScore(answers.self_income),earning:pct5(answers.self_earning),debt:debtStabilityScore(answers.self_debt),money_mgmt:pct5(answers.self_money_mgmt)
+ };
+ const emotional={
+  regulation:[20,30,38,78,92][answers.emotion_regulation]??null,
+  conflict:[22,25,38,78,93][answers.emotion_conflict]??null,
+  repair:[28,32,58,82,95][answers.emotion_repair]??null,
+  affection:pct5(answers.emotion_affection),
+  boundary:pct5(answers.emotion_boundary)
+ };
+ const self={
+  selfcare:selfcareScore,
+  economy, economyOverall:avgValid(Object.values(economy)),
+  life:arrCountScore(answers.life_items,9,8),
+  values:avgValid([pct5(answers.self_values),pct5(answers.self_dialogue)]),
+  emotion:emotional, emotionalOverall:avgValid(Object.values(emotional)),
+  resource:avgValid([pct5(answers.relation_time),[20,38,65,92,72][answers.relation_support]??null])
+ };
+
+ const demand={
+  '외적 관리':want.selfcare,
+  '경제 기반':want.economy,
+  '생활·가치관':want.values,
+  '정서·관계':want.emotional,
+  '관계 자원':want.resource
+ };
+ const supply={
+  '외적 관리':self.selfcare,
+  '경제 기반':self.economyOverall,
+  '생활·가치관':avgValid([self.life,self.values]),
+  '정서·관계':self.emotionalOverall,
+  '관계 자원':self.resource
+ };
+ const gaps=Object.keys(demand).map(name=>({name,want:demand[name],have:supply[name],gap:Math.max(0,(demand[name]??0)-(supply[name]??0)),raw:(demand[name]??0)-(supply[name]??0)})).sort((a,b)=>b.raw-a.raw);
+
+ const actualConditionIndex=avgValid([
+  100-(answers.trade_condition_comfort??2)/4*100,
+  100-(answers.trade_attraction_stability??2)/4*100,
+  Math.abs((answers.trade_asset_career??2)-2)/2*55+45,
+  100-(answers.trade_income_management??2)/4*70,
+  100-(answers.trade_career_time??2)/4*100
+ ]);
+ const selfViewConditions=pct5(answers.selfview_conditions);
+ const actualAccommodation=avgValid([pct5(answers.relation_time),(answers.trade_career_time??2)/4*100]);
+ const selfViewAccommodation=pct5(answers.selfview_accommodation);
+
+ const flex=pct5(answers.strategy_flex),change=pct5(answers.strategy_change),capacity=pct5(answers.strategy_capacity),opportunity=pct5(answers.strategy_opportunity);
+ const meaningful=gaps.filter(g=>g.gap>=18);
+ let type;
+ if(!meaningful.length)type=opportunity<=25?'opportunity':'balanced';
+ else if(flex<40&&change<40)type='fixed';
+ else if(flex<45&&change>=60)type='growth';
+ else if(flex>=60&&change<45)type='adjust';
+ else type='dual';
+
+ const typeInfo={
+ balanced:['균형형','현재 요구와 제공 자원 사이에서 한 영역만 크게 막히는 구조가 두드러지지 않습니다.'],
+ growth:['성장형','기준을 낮추기보다 바꿀 수 있는 나의 영역을 키우는 쪽을 더 납득하는 편입니다.'],
+ adjust:['기준조정형','현재의 나를 크게 바꾸기보다 덜 중요한 조건의 허용 범위를 넓히는 데 더 열려 있습니다.'],
+ dual:['양방향 조정형','나와 상대 기준 어느 한쪽만 크게 바꾸기보다 비용이 작은 변화와 조건 조정을 함께 쓰는 편입니다.'],
+ fixed:['고정기준형','원하는 기준도 현재의 나도 크게 바꾸고 싶지 않아 탐색 환경과 시간이 중요한 유형입니다.'],
+ opportunity:['기회부족형','조건 차이보다 새로운 사람과 만날 표본 자체가 부족한 편입니다.']
+ };
+
+ return {want,self,demand,supply,gaps,meaningful,actualConditionIndex,selfViewConditions,actualAccommodation,selfViewAccommodation,flex,change,capacity,opportunity,type,typeInfo:typeInfo[type]};
+}
+
+function renderRadar(ideal,me){
+ const labels=Object.keys(ideal),cx=170,cy=158,R=112,point=(i,val)=>{const a=-Math.PI/2+i*Math.PI*2/labels.length,r=R*(val??0)/100;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r]};
+ const ring=v=>labels.map((_,i)=>point(i,v).join(',')).join(' '),poly=o=>labels.map((k,i)=>point(i,o[k]).join(',')).join(' ');
+ let s='<svg viewBox="0 0 340 330">';
+ [25,50,75,100].forEach(v=>s+=`<polygon points="${ring(v)}" fill="none" stroke="#e7e7ed" stroke-width="1"/>`);
+ labels.forEach((k,i)=>{const p=point(i,100),lp=point(i,122),anc=lp[0]<cx-8?'end':lp[0]>cx+8?'start':'middle';s+=`<line x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}" stroke="#ededf2"/><text x="${lp[0]}" y="${lp[1]}" text-anchor="${anc}" dominant-baseline="middle" font-size="10.5" fill="#6d6d75">${k}</text>`});
+ s+=`<polygon points="${poly(ideal)}" fill="rgba(102,87,232,.14)" stroke="#6657e8" stroke-width="2.5"/><polygon points="${poly(me)}" fill="rgba(24,24,27,.06)" stroke="#18181b" stroke-width="2.2" stroke-dasharray="6 5"/>`;
+ return s+'</svg>';
+}
+
+
+const MBTI_STACKS={
+ ISTJ:['Si','Te','Fi','Ne'],ISFJ:['Si','Fe','Ti','Ne'],INFJ:['Ni','Fe','Ti','Se'],INTJ:['Ni','Te','Fi','Se'],
+ ISTP:['Ti','Se','Ni','Fe'],ISFP:['Fi','Se','Ni','Te'],INFP:['Fi','Ne','Si','Te'],INTP:['Ti','Ne','Si','Fe'],
+ ESTP:['Se','Ti','Fe','Ni'],ESFP:['Se','Fi','Te','Ni'],ENFP:['Ne','Fi','Te','Si'],ENTP:['Ne','Ti','Fe','Si'],
+ ESTJ:['Te','Si','Ne','Fi'],ESFJ:['Fe','Si','Ne','Ti'],ENFJ:['Fe','Ni','Se','Ti'],ENTJ:['Te','Ni','Se','Fi']
+};
+const FUNCTION_INFO={
+ Ni:{name:'내향직관(Ni)',short:'관계의 의미와 장기적인 방향을 한 흐름으로 읽는 방식',axis:'생활·가치관',meet:'관심사나 목적이 분명하고 같은 사람을 반복해서 만나는 모임'},
+ Ne:{name:'외향직관(Ne)',short:'여러 가능성을 열어두고 새로운 사람·아이디어를 탐색하는 방식',axis:'관계 자원',meet:'새로운 사람과 주제를 자주 접할 수 있는 다채로운 커뮤니티'},
+ Si:{name:'내향감각(Si)',short:'익숙함·안정성·생활의 일관성과 검증된 패턴을 중시하는 방식',axis:'생활·가치관',meet:'정기적으로 같은 사람이 모이는 생활권·취미·지인 기반 모임'},
+ Se:{name:'외향감각(Se)',short:'지금 느껴지는 매력과 현장 경험, 실제 행동을 빠르게 받아들이는 방식',axis:'외적 관리',meet:'운동·공연·여행·체험형 활동처럼 행동과 분위기가 바로 드러나는 자리'},
+ Fi:{name:'내향감정(Fi)',short:'내 가치관과 진정성, 개인적인 호불호 기준을 깊게 확인하는 방식',axis:'생활·가치관',meet:'취향·창작·가치관이 자연스럽게 드러나는 소규모 관심사 커뮤니티'},
+ Fe:{name:'외향감정(Fe)',short:'상대의 반응과 관계의 분위기, 정서적 상호작용을 중요하게 읽는 방식',axis:'정서·관계',meet:'협업·봉사·모임처럼 사람 사이의 태도와 배려를 반복해서 볼 수 있는 환경'},
+ Ti:{name:'내향사고(Ti)',short:'내적으로 납득되는 논리와 말의 일관성을 확인하는 방식',axis:'생활·가치관',meet:'전문 주제 스터디·독서·기술·취미처럼 깊은 대화가 자연스러운 모임'},
+ Te:{name:'외향사고(Te)',short:'현실적인 실행력·성취·구조와 효율을 중요하게 보는 방식',axis:'경제 기반',meet:'업계·전문직·프로젝트·자격 학습처럼 실행력과 생활 태도가 드러나는 환경'}
+};
+function mbtiLens(a){
+ const mbti=(demographics.mbti||'').toUpperCase();
+ const stack=MBTI_STACKS[mbti]||[];
+ const dom=FUNCTION_INFO[stack[0]]||FUNCTION_INFO.Ni, aux=FUNCTION_INFO[stack[1]]||FUNCTION_INFO.Fe;
+ const isI=mbti.startsWith('I');
+ const axisScore=a.supply[dom.axis]??50;
+ const agreement=axisScore>=62?'실제 응답에서도 이 설명과 겹치는 부분이 비교적 뚜렷합니다.':axisScore<=38?'다만 실제 응답에서는 이 기능 설명보다 다른 패턴이 더 강하게 나타났습니다.':'실제 응답에서는 이 경향이 중간 정도로 나타났습니다.';
+ return {mbti,dom,aux,isI,agreement,contactBase:isI?'사람을 많이 만나는 방식보다, 같은 사람을 여러 번 만나며 판단할 수 있는 소규모·반복형 접점':'한두 집단에만 머무르기보다 새로운 사람을 넓게 접한 뒤, 괜찮은 사람과 반복 접점을 만드는 방식'};
+}
+function renderMbtiLens(a,compact=false){
+ const m=mbtiLens(a);
+ const score=a.supply[m.dom.axis]??50;
+ let fit=score>=62
+   ?`이번 답변에서도 ${m.dom.axis} 쪽 성향이 비교적 뚜렷하게 나타났습니다.`
+   :score<=38
+    ?`다만 이번 답변에서는 전형적인 ${m.dom.name} 설명보다 다른 성향이 더 강하게 보입니다.`
+    :`이번 답변에서는 이 성향이 아주 강하거나 약하기보다 중간 정도로 나타났습니다.`;
+ const direct=m.isI
+  ?`처음부터 많은 사람을 빠르게 비교하기보다, 몇 번 더 만나보면서 상대의 말과 행동이 일관되는지 확인하는 쪽이 편한 편일 가능성이 큽니다.`
+  :`새로운 사람을 만나는 것 자체에는 비교적 열려 있고, 여러 사람을 경험한 뒤 나와 맞는 사람을 골라가는 방식이 편한 편일 가능성이 큽니다.`;
+ const core=`<div class="function-row"><span class="function-chip">${m.mbti}</span><span class="function-chip">${m.dom.name}</span><span class="function-chip">${m.aux.name}</span></div>
+ <p class="muted">${m.dom.name} 성향은 ${m.dom.short}으로 설명할 수 있습니다. ${fit} ${direct}</p>`;
+ if(compact)return core;
+ return core+`<div class="report-callout"><b>연애에서 보이는 특징</b><br>${m.dom.name}의 성향과 이번 답변을 같이 보면, 사람을 볼 때 <b>${m.dom.axis}</b>에서 느껴지는 일관성을 중요하게 확인하는 편입니다. 순간적인 호감만으로 결정하기보다 “이 사람이 내가 원하는 관계와 실제로 맞는가”를 판단하려는 쪽에 가깝습니다.</div>`;
+}
+
+function makeInsights(a){
+ const out=[];
+ if(a.want.attraction>=75&&a.want.emotional>=75)out.push(['외모를 안 보는 사람은 아니지만, 끌림만으로는 오래 가지 않는 편입니다.','외적 끌림도 중요하지만 정서적 안정에 대한 요구도 동시에 높습니다. 처음의 호감과 관계를 유지하는 기준이 서로 다른 편에 가깝습니다.']);
+ else if(a.want.attraction>=75)out.push(['외적 끌림은 당신에게 생각보다 앞단의 조건입니다.','다른 조건이 좋아도 끌림이 없으면 연애 대상으로 보기 어렵다고 답했습니다. 외모 하나로 결정한다기보다, 알아가 볼 사람을 거르는 첫 관문에 가깝습니다.']);
+ if(a.want.econ.assets>=75&&a.want.econ.earning<50)out.push(['직업 타이틀보다 이미 만들어진 경제 기반을 더 봅니다.','현재 자산의 중요도가 높은 반면 커리어·소득창출 기반의 중요도는 상대적으로 낮습니다. “어디 다니는가”보다 실제 경제 기반이 더 중요한 편입니다.']);
+ if(a.want.econ.earning>=75&&a.want.econ.assets<50)out.push(['지금 가진 돈보다 앞으로 만들어낼 힘을 더 봅니다.','현재 자산보다 직업·전문성·사업 기반을 더 중요하게 답했습니다. 현재 숫자보다 지속적인 소득 창출력에 더 반응하는 편입니다.']);
+ if((answers.trade_income_management??2)>=3)out.push(['돈의 크기만큼 “돈을 다루는 방식”을 봅니다.','소득이 조금 낮아도 계획적으로 관리하는 사람 쪽을 선택했습니다. 재력 자체와 경제관념을 별개의 매력으로 보는 편입니다.']);
+ if(a.want.resource>=75&&(a.self.resource??0)<55)out.push(['함께할 시간은 중요하지만, 현재 내가 내어줄 수 있는 여유는 그만큼 크지 않을 수 있습니다.','상대의 시간과 관심에 대한 요구는 높은 반면 현재 관계 자원은 상대적으로 낮습니다. 이 차이는 애정 부족보다 생활 여유의 문제일 수 있습니다.']);
+ if((answers.trade_attraction_stability??2)>=3)out.push(['강한 설렘보다 꾸준한 태도가 최종 선택에서 이기는 편입니다.','매력적인데 불안정한 상대보다 끌림이 조금 덜해도 관계 태도가 일정한 상대를 선택했습니다.']);
+ if(a.want.selfcare>=75&&(a.self.selfcare??0)>=70)out.push(['내가 관리하는 만큼 상대에게도 관리를 기대하는 편입니다.','외적 자기관리의 기대와 현재 본인의 관리 루틴이 모두 높은 편입니다.']);
+ if((a.self.selfcare??0)<45&&pct5(answers.selfcare_interest)>=75)out.push(['관심은 높은데 아직 루틴이 따라오지 않는 편입니다.','더 나아지고 싶은 관심은 분명하지만 실제 관리 항목과 생활화 정도는 그만큼 높지 않습니다.']);
+ return out.slice(0,3);
+}
+
+function heroCopy(a){
+ if(a.want.econ.assets>=75&&a.want.econ.earning>=75&&a.want.emotional>=75)
+   return '당신은 경제적 조건도 중요하고,<br>관계에서 느끼는 안정감도 중요하게 봅니다.<br>둘 중 하나만 좋아서는 쉽게 마음이 가지 않는 편입니다.';
+ if(a.want.resource>=75&&a.want.emotional>=75)
+   return '당신은 좋아하는 마음만큼,<br>서로 시간을 내고 안정적으로 관계를 이어가는 태도를 중요하게 봅니다.';
+ if(a.want.attraction>=75&&a.want.emotional>=75)
+   return '당신은 첫눈에 끌리는 것도 중요하지만,<br>막상 연애할 사람을 고를 때는 안정적인 관계인지도 꼭 보는 편입니다.';
+ if(a.want.economy>=70)
+   return '당신은 단순히 돈이 많은 사람보다,<br>자산·소득·돈 관리까지 경제생활이 안정적인 사람에게 더 마음이 가는 편입니다.';
+ return '당신은 한 가지 장점만으로 사람을 고르기보다,<br>여러 조건이 어느 정도 함께 맞아야 마음이 가는 편입니다.';
+}
+
+function strengthCopy(a){
+ const scores=[['외적 자기관리',a.self.selfcare],['경제 기반',a.self.economyOverall],['생활·가치관',avgValid([a.self.life,a.self.values])],['정서·관계',a.self.emotionalOverall],['관계 자원',a.self.resource]].sort((x,y)=>(y[1]??0)-(x[1]??0));
+ const [name,v]=scores[0];
+ const map={
+  '외적 자기관리':'관심을 생각에서 끝내기보다 실제 관리 행동으로 옮기는 힘',
+  '경제 기반':'돈을 벌고 보유하고 관리하는 현재의 경제 기반',
+  '생활·가치관':'내 생활과 기준을 스스로 운영하고 설명할 수 있는 힘',
+  '정서·관계':'갈등 속에서도 관계를 완전히 흔들지 않고 조정하려는 힘',
+  '관계 자원':'관계에 실제 시간과 정서적 여유를 배분할 수 있는 힘'
+ };
+ return `<div class="report-callout"><b>${name}</b><br>${map[name]}이 현재 응답에서 가장 안정적으로 나타났습니다. 본인에게는 당연하게 느껴져도, 이 영역을 중요하게 보는 상대에게는 실제 장점이 될 수 있습니다.</div>`;
+}
+
+function paradoxCopy(a){
+ const candidates=[];
+ if(a.want.resource-a.self.resource>=20)candidates.push([
+   '상대에게는 충분한 시간과 관심을 바라지만, 지금의 나는 연애에 쓸 여유가 많지 않을 수 있습니다.',
+   '즉 “사랑을 많이 받고 싶다”는 마음과 “내 생활은 지키고 싶다”는 마음이 같이 있는 편입니다. 그래서 상대가 바쁘면 서운할 수 있지만, 반대로 내가 자주 시간을 맞춰줘야 하는 관계도 금방 피곤해질 수 있어요. 당신에게는 무조건 자주 만나는 사람보다 서로의 생활을 존중하면서도 필요할 때 확실히 시간을 내는 사람이 더 잘 맞을 가능성이 큽니다.'
+ ]);
+ if(a.want.selfcare-a.self.selfcare>=20)candidates.push([
+   '관리 잘하는 사람에게 끌리지만, 지금의 내 관리 습관은 그 기대보다 느슨한 편입니다.',
+   '상대에게 바라는 자기관리 수준은 높은데, 본인의 관심·관리 항목·루틴을 함께 보면 아직 그만큼 생활화되지는 않았습니다. 이건 외모가 부족하다는 뜻이 아니라 “상대에게 기대하는 관리 태도와 내가 실제로 유지하는 관리 태도 사이에 차이가 있다”는 뜻입니다.'
+ ]);
+ if(a.want.economy-a.self.economyOverall>=20)candidates.push([
+   '상대의 경제적인 안정은 중요하게 보는데, 현재 내 경제 기반은 그 기준만큼 안정적이지 않을 수 있습니다.',
+   '당신은 자산·소득·앞으로 벌 수 있는 힘·부채·돈 관리 중 여러 요소를 상대에게 중요하게 봤습니다. 반면 현재의 나는 그중 일부에서 아직 차이가 있습니다. 결국 “경제적으로 안정된 상대를 원한다”는 기준과 “현재 내가 가진 경제적 안정” 사이에 간격이 있는 편입니다.'
+ ]);
+ if(a.selfViewConditions!==null&&a.actualConditionIndex!==null&&a.actualConditionIndex-a.selfViewConditions>=20)candidates.push([
+   '스스로 생각하는 것보다 실제로는 조건을 더 꼼꼼히 보는 편일 수 있습니다.',
+   '본인은 “나는 조건을 많이 보는 사람은 아니다”라고 느낄 수 있지만, 둘 중 하나를 선택해야 하는 질문에서는 조건을 쉽게 내려놓지 않았습니다. 그래서 주변에서는 괜찮다고 하는 사람도 본인에게는 결정적인 한두 가지가 걸려 마음이 잘 안 갈 수 있습니다.'
+ ]);
+ const c=candidates[0]||[
+   '당신은 기준 하나가 아주 높은 사람이라기보다, 여러 조건이 동시에 어느 정도 맞아야 하는 사람에 가깝습니다.',
+   '외모·경제·대화·정서처럼 각각의 기준만 보면 무리하게 높지 않을 수 있습니다. 하지만 실제 연애에서는 이 조건들이 한 사람 안에서 함께 맞아야 마음이 움직입니다. 그래서 “괜찮은 사람은 많은데 이상하게 내 사람은 없다”고 느끼기 쉬운 구조입니다.'
+ ];
+ return `<div class="report-callout"><b>${c[0]}</b><br>${c[1]}</div>`;
+}
+
+function metaVsCopy(a){
+ const selfCond=a.selfViewConditions>=63?'조건을 많이 보는 편':a.selfViewConditions<=38?'조건을 많이 보지 않는 편':'보통 정도로 보는 편';
+ const actual=a.actualConditionIndex>=62?'실제 선택에서는 조건을 꽤 지키는 편':a.actualConditionIndex<=42?'실제 선택에서는 관계 경험을 더 우선하는 편':'상황에 따라 조건과 관계 경험을 바꾸는 편';
+ const selfAcc=a.selfViewAccommodation>=63?'상대에게 많이 맞춰주는 편':a.selfViewAccommodation<=38?'내 생활을 많이 지키는 편':'적당히 맞춰주는 편';
+ const actualAcc=a.actualAccommodation>=62?'실제 응답에서도 관계를 위해 일정을 조정하는 편':a.actualAccommodation<=42?'실제 응답에서는 개인 일정의 비중이 더 큰 편':'상황에 따라 조정하는 편';
+ return `<div class="meta-vs"><div class="meta-box"><small>내가 생각하는 나</small><b>${selfCond}</b></div><div class="meta-arrow">→</div><div class="meta-box"><small>실제 선택 패턴</small><b>${actual}</b></div></div>
+ <div style="height:8px"></div>
+ <div class="meta-vs"><div class="meta-box"><small>내가 생각하는 나</small><b>${selfAcc}</b></div><div class="meta-arrow">→</div><div class="meta-box"><small>실제 행동 응답</small><b>${actualAcc}</b></div></div>`;
+}
+
+
+function gapReason(a,g){
+ const high=g.want>=75?'매우 중요하게':'중요하게';
+ const low=g.have<40?'낮은 편':g.have<60?'보통보다 조금 낮은 편':'중간 이상';
+ if(g.name==='정서·관계'){
+   const parts=[['감정조절',a.self.emotion.regulation],['갈등 대화',a.self.emotion.conflict],['관계 회복',a.self.emotion.repair],['애정 표현',a.self.emotion.affection],['경계 설정',a.self.emotion.boundary]].sort((x,y)=>(x[1]??50)-(y[1]??50));
+   return `당신은 상대의 감정조절·갈등 대화·애정표현 같은 정서적 안정성을 ${high} 봤습니다. 반면 현재의 당신에서는 <b>${parts[0][0]}</b>이 다른 정서 영역보다 상대적으로 낮게 나타났습니다. 즉 사랑이나 관계 자체에 관심이 없는 것이 아니라, 실제 갈등이나 감정이 올라오는 순간의 대응 방식에서 상대에게 바라는 수준과 차이가 생긴 것입니다. 이 차이가 크다면 “좋은 사람인데 왜 관계가 힘들지?”라는 느낌으로 나타날 수 있습니다.`;
+ }
+ if(g.name==='관계 자원'){
+   const time=pct5(answers.relation_time), support=[20,38,65,92,72][answers.relation_support]??50;
+   return `당신은 상대가 연애를 위해 시간을 내고 관심을 보여주는 것을 ${high} 봤습니다. 그런데 현재 답변에서는 일정 조정 가능성이 ${level(time)}이고, 지친 상황에서 상대에게 쓸 수 있는 정서적 여유도 ${level(support)}으로 나타났습니다. 그래서 상대에게 원하는 관심의 양과 내가 실제로 제공할 수 있는 시간·에너지 사이에 차이가 생길 수 있습니다. 이건 애정의 크기보다 현재 생활 구조의 문제에 가깝습니다.`;
+ }
+ if(g.name==='생활·가치관'){
+   return `당신은 대화가 통하고 가치관이 맞는 사람을 ${high} 봅니다. 현재의 당신은 자신의 기준을 알고 설명하는 정도와, 다른 의견을 가진 사람과 대화를 이어가는 정도를 함께 측정했을 때 ${low}으로 나타났습니다. 즉 “나와 잘 맞는 사람”에 대한 요구는 분명한데, 내가 무엇을 중요하게 생각하는지 상대에게 선명하게 보여주는 힘은 그보다 약할 수 있습니다. 이 부분이 맞춰지면 처음부터 맞지 않는 사람을 거르는 속도도 빨라질 수 있습니다.`;
+ }
+ if(g.name==='외적 관리'){
+   const count=(answers.selfcare_items||[]).includes(7)?0:(answers.selfcare_items||[]).length;
+   return `당신은 상대가 꾸준히 자기관리를 하는 것을 ${high} 봅니다. 현재 본인의 외모·스타일 관심도와 실제 관리 루틴, 최근 꾸준히 관리한 항목(${count}개)을 함께 보면 자기관리 수준은 ${low}으로 나타났습니다. 여기서 말하는 차이는 타고난 외모가 아니라 “관리하는 태도와 습관”의 차이입니다. 상대에게 기대하는 만큼 나도 관리가 생활화되어 있는지를 확인해볼 가치가 있습니다.`;
+ }
+ if(g.name==='경제 기반'){
+   const e=a.self.economy,w=a.want.econ;
+   const rows=[['자산',w.assets,e.assets],['소득',w.income,e.income],['앞으로의 소득 창출력',w.earning,e.earning],['부채 안정성',w.debt,e.debt],['경제관념',w.money_mgmt,e.money_mgmt]].filter(x=>x[1]!=null&&x[2]!=null).sort((x,y)=>(y[1]-y[2])-(x[1]-x[2]));
+   const r=rows[0]||['경제 기반',g.want,g.have];
+   return `당신은 상대의 자산·소득·소득 창출력·부채·경제관념을 하나로 보지 않고 여러 요소로 나눠 중요하게 봤습니다. 그중 현재 가장 큰 차이는 <b>${r[0]}</b>에서 나타났습니다. 즉 “커리어가 좋으면 됨”이나 “돈만 많으면 됨”이 아니라, 당신이 중요하게 보는 경제 요소와 현재 내 경제 구조가 정확히 같은 모양은 아닙니다. 경제 GAP은 전체 돈의 많고 적음보다 어느 하위 요소에서 차이가 나는지를 보는 것이 더 중요합니다.`;
+ }
+ return `당신은 이 영역을 ${high} 보지만 현재의 나는 ${low}으로 나타났습니다. 한 문항 때문이 아니라 관련 질문들을 묶어 봤을 때 생긴 차이입니다. 이 차이가 실제 연애에서 얼마나 중요한지는 다른 강점과 변화 의향까지 같이 봐야 합니다. 지금 단계에서는 “부족하다”보다 “내가 상대에게 기대하는 것과 내가 제공하는 것이 같은 수준인가”를 확인하는 신호로 보면 됩니다.`;
+}
+function strategyTypeCopy(a){
+ const mb=mbtiLens(a),top=a.gaps[0];
+ if(a.type==='opportunity'){
+   const fit=top.gap<18?'현재 큰 조건 차이가 두드러지지 않습니다. ':'';
+   const intro=mb.isI?'특히 내향형 성향상 새로운 사람을 많이 만나기보다 익숙한 환경과 소수의 관계를 선호한다면, 생활 반경 안에서 연애 후보가 생기는 속도가 더 느릴 수 있습니다. ':'현재 생활에서 새로운 사람과 연결되는 빈도가 낮아, 좋은 조건을 갖추고 있어도 실제 후보를 만날 표본이 충분히 쌓이지 않습니다. ';
+   return `<div class="report-callout"><b>기회부족형</b><br>${fit}${intro}당신에게 지금 가장 큰 병목은 “더 좋은 사람이 되는 것”보다 <b>나와 맞는 사람이 들어올 수 있는 접점을 늘리는 것</b>에 가깝습니다.</div>`;
+ }
+ if(a.type==='growth')return `<div class="report-callout"><b>성장형</b><br>당신은 이상형의 기준을 쉽게 낮추기보다, 원하는 사람에게 가까워질 수 있다면 내가 바꿀 수 있는 부분을 키우는 쪽을 더 받아들이는 편입니다. 현재 가장 큰 차이는 <b>${top.name}</b>에서 보이므로, 모든 것을 바꾸기보다 이 영역 하나를 먼저 개선하는 전략이 잘 맞습니다.</div>`;
+ if(a.type==='adjust')return `<div class="report-callout"><b>기준조정형</b><br>당신은 현재의 생활과 강점을 크게 바꾸기보다, 실제로 덜 중요한 이상형 조건을 조금 유연하게 보는 쪽에 더 열려 있습니다. 지금의 나를 고치는 것보다 “반드시 필요한 조건”과 “있으면 좋은 조건”을 나누는 것이 선택지를 넓히는 데 더 효과적입니다.</div>`;
+ if(a.type==='dual')return `<div class="report-callout"><b>양방향 조정형</b><br>당신은 이상형의 기준을 전부 낮추지도, 자신을 전부 바꾸지도 않으려는 편입니다. 바꿀 수 있는 부분은 현실적으로 조금 개선하고, 중요도가 낮은 상대 조건은 조금 유연하게 보는 방식이 가장 자연스럽습니다. 현재는 <b>${top.name}</b>이 그 조정의 첫 후보입니다.</div>`;
+ if(a.type==='fixed')return `<div class="report-callout"><b>고정기준형</b><br>당신은 원하는 상대 기준도, 현재의 내 생활방식도 크게 바꾸고 싶지 않은 편입니다. 이 경우 핵심은 자기개선보다 탐색 시간과 환경입니다. 후보 수가 적어질 수 있다는 점을 감수하고, 내 기준과 잘 맞는 사람이 실제로 모이는 곳으로 생활 반경을 옮기는 전략이 필요합니다.</div>`;
+ return `<div class="report-callout"><b>균형형</b><br>현재는 이상형에게 바라는 수준과 지금의 나 사이에서 한 영역만 크게 막히는 모습이 두드러지지 않습니다. 특정 약점을 고치는 것보다 지금 가진 강점을 유지하면서, 실제로 마음이 가는 사람을 만날 접점을 넓히는 편이 효율적입니다.</div>`;
+}
+function idealProfileCopy(a){
+ const lines=[];
+ if(a.want.attraction>=75&&a.want.selfcare>=75) lines.push('당신은 <b>처음 봤을 때 끌리고, 자기관리가 생활화된 사람</b>을 원합니다. 외모 자체와 관리 태도 둘 다 쉽게 포기하지 않는 편입니다.');
+ else if(a.want.attraction>=75) lines.push('당신에게는 <b>외적인 끌림이 연애 후보가 되는 첫 관문</b>에 가깝습니다. 다른 조건이 좋아도 처음부터 끌리지 않으면 관계가 시작되기 어렵습니다.');
+ else if(a.want.selfcare>=75) lines.push('타고난 외모보다 <b>자신을 꾸준히 관리하는 사람</b>에게 더 높은 점수를 주는 편입니다.');
+
+ if(a.want.econ.assets-a.want.econ.earning>=20) lines.push('경제적으로는 화려한 직함보다 <b>이미 만들어진 자산과 실제 생활의 안정</b>을 더 중요하게 봅니다.');
+ else if(a.want.econ.earning-a.want.econ.assets>=20) lines.push('현재 가진 자산보다 <b>앞으로도 꾸준히 벌 수 있는 능력과 커리어 기반</b>을 더 중요하게 봅니다.');
+ else if(a.want.economy>=65) lines.push('경제 조건은 한 가지 숫자로 보지 않습니다. <b>자산·소득·앞으로의 소득창출력·부채·돈 관리</b>가 전체적으로 안정된 사람을 선호합니다.');
+ if((answers.trade_income_management??2)>=3||a.want.econ.money_mgmt>=75) lines.push('특히 돈을 많이 버는 것만큼 <b>돈을 계획적으로 관리하는 태도</b>도 중요하게 봅니다.');
+
+ if((answers.trade_attraction_stability??2)>=3&&a.want.emotional>=65) lines.push('관계에서는 강한 설렘만 주는 사람보다 <b>연락과 애정표현, 갈등 태도가 꾸준한 사람</b>을 장기적으로 더 선택하는 편입니다.');
+ else if(a.want.emotional>=75) lines.push('정서적으로는 <b>감정을 조절하고 대화가 되며, 애정을 표현할 줄 아는 사람</b>을 강하게 원합니다.');
+ if(a.want.values>=75) lines.push('<b>대화가 통하고 가치관을 공유할 수 있는지</b>도 상당히 중요합니다. 좋은 조건만으로는 관계를 오래 끌고 가기 어려운 편입니다.');
+ if(a.want.resource>=75) lines.push('그리고 실제로 <b>연애에 시간과 관심을 내는 사람</b>을 원합니다. 바쁘더라도 관계를 우선순위 밖으로 밀어두는 사람은 잘 맞지 않을 가능성이 큽니다.');
+ return `<div class="profile-evidence">${lines.slice(0,5).map((x,i)=>`<div class="box"><b>${i+1}. ${x}</b></div>`).join('')}</div>`;
+}
+function reverseNarrative(a,rp){
+ const arr=Object.entries(rp.prior).sort((x,y)=>y[1]-x[1]);
+ const top=arr.slice(0,3).map(x=>x[0]);
+ const gaps=arr.map(([name,val])=>({name,val,have:a.supply[name]??50,d:val-(a.supply[name]??50)})).sort((x,y)=>y.d-x.d);
+ const strong=gaps.filter(x=>x.d<=8).sort((x,y)=>x.d-y.d)[0];
+ const weak=gaps[0];
+ let s=`당신이 원하는 유형의 사람은 상대를 볼 때 <b>${top.join(' · ')}</b>을 특히 중요하게 볼 가능성이 있습니다. 단순히 한 가지 조건만 좋은 사람보다, 관계를 안정적으로 운영하고 자신의 생활을 어느 정도 관리할 수 있는 사람에게 더 끌릴 가능성이 큽니다.`;
+ if(strong)s+=` 현재 당신은 <b>${strong.name}</b>에서 그 기대와 비교적 잘 맞는 편입니다. 이 부분은 원하는 상대에게 자연스럽게 보여줄 수 있는 장점입니다.`;
+ if(weak&&weak.d>=12)s+=` 반대로 <b>${weak.name}</b>에서는 기대 수준과 현재의 나 사이에 차이가 보입니다. 당신이 정말 그 유형을 원한다면 이후 전략에서 이 영역을 먼저 볼 가치가 있습니다.`;
+ return `<div class="report-callout">${s}</div>`;
+}
+function renderFree(){
+ const a=analyze(),ins=makeInsights(a);
+ document.getElementById('insightHero').innerHTML=`<small>당신을 한 문장으로 말하면</small><h2>${heroCopy(a)}</h2><p>왜 이런 결과가 나왔는지, 당신이 실제 선택한 답들을 함께 보면서 설명해드릴게요.</p>`;
+ document.getElementById('insightList').innerHTML=(ins.length?ins:[['당신은 한 가지 조건으로 사람을 고르기보다 여러 조건의 조합을 보는 편입니다.','중요도와 실제 선택 문항을 함께 보면 단일 기준보다 전체 균형이 선택에 더 많이 개입합니다.']]).map(x=>`<div class="insight"><b>${x[0]}</b><p>${x[1]}</p></div>`).join('');
+ document.getElementById('metaVs').innerHTML=metaVsCopy(a);
+ document.getElementById('mbtiFreeLens').innerHTML=renderMbtiLens(a,true);
+ document.getElementById('strengthCard').innerHTML=strengthCopy(a);
+ document.getElementById('paradoxCard').innerHTML=paradoxCopy(a);
+ document.getElementById('radarWrap').innerHTML=renderRadar(a.demand,a.supply);
+ document.getElementById('freeGap').innerHTML=a.gaps.slice(0,3).map(g=>`<div class="box"><b>${g.name}</b><p class="muted">${gapReason(a,g)}</p></div>`).join('');
+ document.getElementById('strategyType').innerHTML=strategyTypeCopy(a);
+ buildPrecision(a);saveFreeData();
+}
+
+const prefLabels={'외적 관리':'외적 자기관리','경제 기반':'경제 기반','생활·가치관':'대화·가치관','정서·관계':'정서·관계','관계 자원':'관계에 쓸 시간'};
+function buildPrecision(a){
+ const tops=Object.entries(a.demand).sort((x,y)=>(y[1]??0)-(x[1]??0)).slice(0,3).map(([k])=>prefLabels[k]);
+ const g1=a.gaps[0]?.name||'경제 기반',g2=a.gaps[1]?.name||'정서·관계';
+ precisionQuestions=[
+  [`‘${tops[0]}’이 기대에 조금 못 미치더라도 다른 조건이 매우 좋다면 연애를 고려할 수 있나요?`,likert5],
+  [`‘${tops[1]}’이 기대에 조금 못 미치더라도 다른 조건이 매우 좋다면 연애를 고려할 수 있나요?`,likert5],
+  [`‘${tops[2]}’이 기대에 조금 못 미치더라도 다른 조건이 매우 좋다면 연애를 고려할 수 있나요?`,likert5],
+  ['현실적으로 선택지가 줄어들더라도 가장 포기하고 싶지 않은 조건은 무엇인가요?',tops],
+  [`현재 분석에서 ‘${g1}’에 차이가 나타났습니다. 이 부분을 개선하기 위해 시간이나 노력을 투자할 의향이 있나요?`,likert5],
+  [`‘${g1}’을 실제로 개선하기 위해 현재 투입할 수 있는 시간·비용·생활 여건은 어느 정도인가요?`,capacity5],
+  [`현재 분석에서 ‘${g2}’에 차이가 나타났습니다. 이 부분을 개선하기 위해 시간이나 노력을 투자할 의향이 있나요?`,likert5],
+  [`‘${g2}’을 실제로 개선하기 위해 현재 투입할 수 있는 시간·비용·생활 여건은 어느 정도인가요?`,capacity5],
+  ['정말 원하는 사람이 나타났다면, 관계를 이어가기 위해 현재 생활 방식이나 우선순위를 어느 정도까지 바꿀 수 있나요?',['거의 바꾸고 싶지 않다','필요한 최소 범위만 바꿀 수 있다','일부는 조정할 수 있다','꽤 적극적으로 조정할 수 있다','필요하다면 적극적으로 바꿀 수 있다']],
+  ['원하는 사람을 만날 가능성을 높이기 위해 현재 만남 방식이나 생활 환경을 바꿀 의향은 어느 정도인가요?',likert5]
+ ];
+}
+function startPrecision(){const a=analyze();buildPrecision(a);pi=0;precisionAnswers=[];renderPrecision();showOnly('precision')}
+function renderPrecision(){const q=precisionQuestions[pi],box=document.getElementById('precisionOptions');document.getElementById('precisionNum').textContent=`정밀 질문 ${String(pi+1).padStart(2,'0')} / ${precisionQuestions.length}`;document.getElementById('precisionText').textContent=q[0];document.getElementById('precisionBar').style.width=`${(pi+1)/precisionQuestions.length*100}%`;document.getElementById('precisionPrev').style.display=pi?'block':'none';box.innerHTML='';q[1].forEach((o,i)=>{const d=document.createElement('div');d.className='option'+(precisionAnswers[pi]===i?' selected':'');d.textContent=o;d.onclick=()=>{precisionAnswers[pi]=i;setTimeout(()=>{if(pi<precisionQuestions.length-1){pi++;renderPrecision();window.scrollTo(0,0)}else{renderReport();showOnly('report')}},75)};box.appendChild(d)})}
+function prevPrecision(){if(pi){pi--;renderPrecision();window.scrollTo(0,0)}}
+const pscore=i=>Number.isInteger(precisionAnswers[i])?precisionAnswers[i]/4*100:50;
+
+function reversePrior(a){
+ // Beta 서비스 추정. 물리적 매력 연구를 자기관리 점수로 직접 치환하지 않는다.
+ const base={'외적 관리':55,'경제 기반':58,'생활·가치관':66,'정서·관계':78,'관계 자원':70};
+ const overall=avgValid(Object.values(a.demand)),globalAdj=clamp(((overall??50)-50)*.10,-5,5);
+ const prior={};Object.keys(base).forEach(k=>prior[k]=Math.round(clamp(base[k]+globalAdj+((a.demand[k]??50)-50)*.07,35,90)));
+ return {prior,model:'Research Prior v1 Beta'};
+}
+function statusForGap(g){if(g>=25)return['차이 큼','signal-red'];if(g>=12)return['차이 있음','signal-yellow'];return[g<=-8?'충분함':'비슷함','signal-green']}
+
+const growthGuides={
+ '외적 관리':[['관심과 루틴 분리','관심은 높은데 루틴이 낮은지, 실제 관리 영역이 좁은지 먼저 확인합니다.'],['관리 영역 한두 개 확장','현재 비어 있는 영역 중 체감이 큰 것부터 선택합니다.'],['생활화 확인','짧은 집중보다 특별히 마음먹지 않아도 유지되는 루틴을 목표로 둡니다.']],
+ '경제 기반':[['경제 기반 분해','자산·소득·소득창출력·부채·경제관념 중 실제 병목을 찾습니다.'],['현금흐름 정리','소득의 크기와 별개로 지출·저축·부채 구조를 확인합니다.'],['장기 선택지 확대','커리어 성장과 자산 형성을 같은 문제로 보지 않고 각각 계획합니다.']],
+ '생활·가치관':[['생활 운영 확인','현재 혼자 안정적으로 운영되지 않는 생활 영역을 찾습니다.'],['내 기준 언어화','연애에서 중요하게 보는 가치·경계·생활방식을 말로 정리합니다.'],['다른 관점과 대화','동의하지 않는 상대와도 대화를 이어가는 방식을 연습합니다.']],
+ '정서·관계':[['반응 패턴 확인','감정 상승·갈등·회복 중 반복해서 막히는 구간을 찾습니다.'],['표현과 조절 분리','참는 것과 조절하는 것을 구분하고 감정을 설명하는 방식을 익힙니다.'],['회복·경계 연습','관계를 수습하면서도 상대의 감정 전체를 대신 책임지지 않는 경계를 둡니다.']],
+ '관계 자원':[['가용 시간 확인','연애에 실제로 내어줄 수 있는 시간을 현실적으로 계산합니다.'],['조정 범위 정하기','지킬 개인 영역과 관계를 위해 조정 가능한 일정을 나눕니다.'],['지속 가능성 우선','무조건적인 희생보다 반복 가능한 관심과 책임을 기준으로 둡니다.']]
+};
+
+function renderReport(){
+ const a=analyze(),rp=reversePrior(a),mb=mbtiLens(a);
+ const gaps=Object.keys(rp.prior).map(name=>({name,expected:rp.prior[name],have:Math.round(a.supply[name]??50),raw:Math.round(rp.prior[name]-(a.supply[name]??50))})).sort((x,y)=>y.raw-x.raw);
+ const topDemand=Object.entries(a.demand).sort((x,y)=>(y[1]??0)-(x[1]??0));
+ const flexNames=[0,1,2].map((i)=>({name:precisionQuestions[i][0].match(/‘(.+?)’/)?.[1]||'',v:pscore(i)}));
+ const must=flexNames.filter(x=>x.v<38).map(x=>x.name),flex=flexNames.filter(x=>x.v>=63).map(x=>x.name),mid=flexNames.filter(x=>x.v>=38&&x.v<63).map(x=>x.name);
+
+ document.getElementById('reportTitle').textContent=`${a.typeInfo[0]}의 정밀 분석`;
+ document.getElementById('profileLens').innerHTML=renderMbtiLens(a,false);
+ document.getElementById('idealProfile').innerHTML=idealProfileCopy(a);
+ document.getElementById('priorityMap').innerHTML=`<div class="priority-grid"><div class="priority-box"><small>쉽게 포기하기 어려움</small><b>${must.join(' · ')||topDemand.slice(0,2).map(x=>prefLabels[x[0]]).join(' · ')}</b></div><div class="priority-box"><small>중요하지만 비교 가능</small><b>${mid.join(' · ')||'—'}</b></div><div class="priority-box"><small>다른 장점으로 보완 가능</small><b>${flex.join(' · ')||'—'}</b></div></div>`;
+ document.getElementById('reverseSummary').innerHTML=reverseNarrative(a,rp);
+
+ document.getElementById('precisionRadar').innerHTML=renderRadar(rp.prior,a.supply);
+ document.getElementById('gapSignal').innerHTML=gaps.map(g=>{const [lab,cls]=statusForGap(g.raw);return `<div class="signal-row"><i class="signal-dot ${cls}"></i><div class="signal-name">${g.name}</div><div class="signal-status">${lab}</div><div class="signal-copy">${g.raw>=25?'상대가 기대할 가능성이 높은 수준과 지금의 당신 사이에서 가장 먼저 볼 영역입니다.':g.raw>=12?'차이는 있지만 다른 강점으로 어느 정도 보완될 수 있는 영역입니다.':'현재는 상대가 기대할 가능성이 있는 수준과 비교적 잘 맞는 편입니다.'}</div></div>`}).join('');
+ document.getElementById('gapDetail').innerHTML=gaps.slice(0,3).map(g=>`<div class="detail-item"><b>${g.name}</b><div class="bar-label"><span>상대가 기대할 가능성이 높은 수준</span><span>${g.expected}</span></div><div class="hbar hbar-prior"><i style="width:${g.expected}%"></i></div><div class="bar-label"><span>현재의 나</span><span>${g.have}</span></div><div class="hbar hbar-me"><i style="width:${g.have}%"></i></div></div>`).join('');
+
+ const e=a.self.economy,w=a.want.econ;
+ const econRows=[['자산',w.assets,e.assets],['소득',w.income,e.income],['소득 창출력',w.earning,e.earning],['부채 안정성',w.debt,e.debt],['경제관념',w.money_mgmt,e.money_mgmt]];
+ document.getElementById('econSubscores').innerHTML=`<b>경제 조건을 더 자세히 보면</b>${econRows.map(r=>`<div class="subscore-row"><b>${r[0]}</b><span>내가 보는 중요도 ${Math.round(r[1]??0)}</span><span>현재 나 ${r[2]===null?'미응답':Math.round(r[2]??0)}</span></div>`).join('')}`;
+
+ const precisionChange=pscore(8);
+ const willingness=avgValid([a.change,precisionChange]);
+ const capacity=avgValid([a.capacity,pscore(5),pscore(7)]);
+ const g1=a.gaps[0],g2=a.gaps[1],c1=avgValid([pscore(4),pscore(5)]),c2=avgValid([pscore(6),pscore(7)]);
+ const grow=[{name:g1.name,gap:g1.gap,change:c1,score:g1.gap*c1/100},{name:g2.name,gap:g2.gap,change:c2,score:g2.gap*c2/100}].sort((x,y)=>y.score-x.score)[0];
+ let routeType,routeTitle,routeBody,routeBadge;
+ if(willingness>=63){
+   if(capacity>=45){routeType='change';routeTitle='당신은 원하는 사람을 만날 수 있다면, 필요한 변화는 꽤 적극적으로 할 수 있는 사람입니다.';routeBody=`그래서 이상형의 기준을 먼저 낮추기보다 <b>${grow.name}</b>을 우선 끌어올리는 전략이 잘 맞습니다. 모든 것을 바꾸는 것이 아니라, 원하는 상대가 중요하게 볼 가능성이 높고 현재 차이도 있는 한 영역을 집중적으로 개선하는 편이 효율적입니다.`;routeBadge='변화 중심 전략';}
+   else{routeType='paced_change';routeTitle='당신은 바꿀 마음은 분명하지만, 지금 당장 큰 변화를 밀어붙일 여유는 많지 않습니다.';routeBody=`원하는 사람을 위해 변화할 의향은 있으므로 기준을 낮출 필요는 없습니다. 대신 <b>${grow.name}</b>에서 돈과 시간이 가장 적게 드는 행동 하나부터 생활에 넣는 방식이 잘 맞습니다. 속도를 늦추되 방향은 유지하는 전략입니다.`;routeBadge='단계적 변화 전략';}
+ }else{
+   routeType='fit';
+   const best=[['외적 관리',a.self.selfcare],['경제 기반',a.self.economyOverall],['생활·가치관',avgValid([a.self.life,a.self.values])],['정서·관계',a.self.emotionalOverall],['관계 자원',a.self.resource]].sort((x,y)=>(y[1]??0)-(x[1]??0))[0][0];
+   routeTitle='당신은 연애를 위해 현재의 나를 크게 바꾸는 것보다, 지금의 나와 잘 맞는 사람을 찾는 편이 더 자연스럽습니다.';
+   routeBody=`억지로 생활방식을 뜯어고치기보다 <b>${best}</b>을 장점으로 보는 상대가 있는 환경으로 이동하는 전략이 잘 맞습니다. 이상형 기준 중 덜 중요한 부분만 조금 유연하게 보고, 현재의 강점이 가치 있게 보이는 사람을 만나는 것이 핵심입니다.`;routeBadge='적합도 중심 전략';
+ }
+ document.getElementById('singleRoute').innerHTML=`<div class="route-only"><h4>${routeTitle}</h4><p>${routeBody}</p><span class="route-badge">${routeBadge}</span></div>`;
+
+ const guide=growthGuides[grow.name]||growthGuides['정서·관계'];
+ if(routeType==='fit'){
+   const flexName=(flex[0]||mid[0]||'상대 조건 일부');
+   document.getElementById('growthNav').innerHTML=`<div class="report-callout"><b>지금의 나를 유지한다면</b><br><b>${flexName}</b>에서 허용 범위를 조금 넓힐 수 있는지 먼저 보세요. 그리고 현재 강점이 실제 행동으로 드러나는 환경에서 사람을 만나는 편이 좋습니다.</div><div class="nav-road"><div class="nav-step"><b>1. 반드시 필요한 조건만 남기기</b>포기하면 실제로 관계가 힘든 기준과, 있으면 좋은 기준을 나눕니다.</div><div class="nav-step"><b>2. 내 강점이 보이는 자리로 이동하기</b>프로필보다 반복 행동에서 당신의 장점이 드러나는 접점을 선택합니다.</div><div class="nav-step"><b>3. 후보 수를 늘리기보다 맞는 후보를 늘리기</b>현재 생활방식과 관계 스타일을 좋아할 가능성이 높은 사람을 만나는 데 집중합니다.</div></div>`;
+ }else{
+   document.getElementById('growthNav').innerHTML=`<div class="report-callout"><b>가장 먼저 바꿔볼 영역 · ${grow.name}</b><br>이 영역은 원하는 상대와의 차이가 있으면서, 당신도 실제로 바꿀 의향을 보인 부분입니다.</div><div class="nav-road">${guide.map((s,i)=>`<div class="nav-step"><b>${i+1}. ${s[0]}</b>${s[1]}</div>`).join('')}</div>`;
+ }
+
+ const opp=a.opportunity;
+ const meetStyle=mb.isI?'여러 사람을 한 번에 많이 만나는 자리보다 <b>같은 사람을 여러 번 볼 수 있는 소규모·반복형 모임</b>':'새로운 사람을 넓게 만날 수 있는 활동을 활용하되 <b>마음이 가는 사람과 다시 만날 수 있는 구조</b>';
+ document.getElementById('meetingPlan').innerHTML=`<div class="report-callout">${mb.mbti}의 ${mb.dom.name} 성향과 현재 답변을 함께 보면, ${meetStyle}이 더 잘 맞습니다. 특히 <b>${mb.dom.meet}</b>에서는 당신이 중요하게 보는 특성을 말보다 행동으로 확인하기 쉽습니다.</div><p>${opp<=25?'현재는 사람을 고르는 기준보다 새로운 후보를 만나는 빈도 자체가 더 큰 문제입니다. 생활 반경을 완전히 바꾸기보다, 한 달에 반복해서 참여할 수 있는 접점 하나부터 추가하는 편이 좋습니다.':'현재 만남 기회는 아주 부족하지 않습니다. 사람 수를 더 늘리는 것보다 당신이 중요하게 보는 정서·경제·가치관이 실제 행동으로 드러나는 환경을 선택하는 편이 효율적입니다.'}</p>`;
+
+ lastPrecisionAnalysis={type:a.type,mbti:mb.mbti,dominant_function:mb.dom.name,auxiliary_function:mb.aux.name,research_prior_model:rp.model,reverse_prior:rp.prior,reverse_gaps:gaps,change_willingness:willingness,change_capacity:capacity,recommended_route:routeType,growth_candidate:grow};
+ savePrecisionData();
+}
+
+function answerText(q,val){
+ if(q.type==='choice')return q.options[val]??null;
+ if(q.type==='multi')return (val||[]).map(i=>q.options[i]).join(', ');
+ if(q.type==='matrix')return Object.fromEntries(q.rows.map(([id,label])=>[label,Number.isInteger(val?.[id])?importance5[val[id]]:null]));
+ return null;
+}
+function rawFreeAnswerPayload(){return questions.map((q,i)=>({question_number:i+1,question_id:q.id,category:q.cat,question:q.text,answer:answers[q.id]??null,answer_text:answerText(q,answers[q.id])}))}
+function rawPrecisionAnswerPayload(){return precisionQuestions.map((q,i)=>({question_number:i+1,category:'정밀 분석',question:q[0],answer_index:precisionAnswers[i],answer_text:q[1][precisionAnswers[i]]??null}))}
+async function request(method,path,body){const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{method,headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(body)});if(!r.ok)throw new Error(await r.text())}
+async function saveFreeData(){if(DEV_PREVIEW||freeSaved||!document.getElementById('dataConsent').checked)return;const a=analyze();const payload={response_id:responseId,survey_version:SURVEY_VERSION,completion_stage:'free',gender:demographics.gender,target_gender:demographics.target,age_band:demographics.age,mbti:demographics.mbti,consent_version:'2026-10-v1',free_answers:rawFreeAnswerPayload(),free_analysis:{basic_info:{age_band:demographics.age},want:a.want,self:a.self,gaps:a.gaps,type:a.type,global_flex:a.flex,global_change:a.change,capacity:a.capacity,opportunity:a.opportunity},scoring_version:SCORING_VERSION};try{await request('POST','metamatch_responses',payload);freeSaved=true}catch(e){console.error('free save failed',e)}}
+async function savePrecisionData(){if(DEV_PREVIEW||precisionSaved)return;if(!freeSaved)await saveFreeData();if(!freeSaved)return;try{await request('POST','rpc/complete_metamatch_precision',{p_response_id:responseId,p_precision_answers:rawPrecisionAnswerPayload(),p_precision_analysis:lastPrecisionAnalysis||{},p_scoring_version:SCORING_VERSION});precisionSaved=true}catch(e){console.error('precision save failed',e)}}
+
+function devSeedFree(){
+ DEV_PREVIEW=true;demographics={gender:'female',target:'male',age:'30-34',mbti:'INTJ'};answers={};
+ questions.forEach((q,i)=>{
+  if(q.type==='choice')answers[q.id]=Math.min(q.options.length-1,Math.max(0,Math.round((q.options.length-1)*([.72,.78,.62,.35,.82,.68,.75][i%7]))));
+  if(q.type==='multi')answers[q.id]=q.id==='selfcare_items'?[0,1,2,3,4,6]:[0,1,2,3,4,5,6,7];
+  if(q.type==='matrix'){answers[q.id]={};q.rows.forEach(([rid],j)=>answers[q.id][rid]=[3,2,3,4,4][j%5])}
+ });
+ // A more readable test profile
+ answers.ideal_attraction=4;answers.ideal_selfcare=4;
+ answers.ideal_econ={assets:3,income:2,earning:3,debt:4,money_mgmt:4};
+ answers.ideal_emotion={regulation:4,conflict:4,affection:3,boundary:4};
+ answers.ideal_values=4;answers.ideal_resource=4;
+ answers.trade_condition_comfort=3;answers.trade_attraction_stability=3;answers.trade_asset_career=1;answers.trade_income_management=4;answers.trade_career_time=3;
+ answers.selfcare_interest=4;answers.selfcare_routine=3;
+ answers.self_income=3;answers.self_assets=2;answers.self_asset_origin=2;answers.self_earning=3;answers.self_debt=1;answers.self_money_mgmt=4;
+ answers.emotion_regulation=3;answers.emotion_conflict=4;answers.emotion_repair=4;answers.emotion_affection=2;answers.emotion_boundary=3;
+ answers.relation_time=2;answers.relation_support=3;answers.selfview_conditions=2;answers.selfview_accommodation=3;
+ answers.strategy_flex=2;answers.strategy_change=4;answers.strategy_capacity=3;answers.strategy_opportunity=1;
+}
+function devSeedPrecision(){precisionAnswers=[1,2,3,0,4,3,3,2,2,3]}
+function devFreePreview(){try{devSeedFree();renderFree();showOnly('free');document.getElementById('devStatus').textContent=''}catch(e){console.error(e);document.getElementById('devStatus').textContent='무료 결과 오류: '+e.message}}
+function devPrecisionPreview(){try{devSeedFree();renderFree();devSeedPrecision();renderReport();showOnly('report');document.getElementById('devStatus').textContent=''}catch(e){console.error(e);document.getElementById('devStatus').textContent='정밀 결과 오류: '+e.message}}
+</script>
 </body>
 </html>
