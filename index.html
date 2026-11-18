@@ -26,7 +26,7 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    #networkCanvas { width: 100%; height: 620px; border-radius: 1rem; background-color: #ffffff; }
+    #networkCanvas { width: 100%; height: 680px; border-radius: 1rem; background-color: #ffffff; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen pb-12">
@@ -124,17 +124,22 @@
         <div>
           <h2 class="font-bold text-gray-900 text-lg flex items-center gap-2">
             <span id="graphStoryTitle">마인드맵 관계도</span>
-            <span class="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">정적 배치</span>
+            <span class="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">쌍방 분리 · 자동 정렬</span>
           </h2>
-          <p class="text-xs text-gray-500 mt-0.5">선택한 작품 안의 캐릭터 서열 및 관계도가 깔끔하게 정돈되어 표시됩니다.</p>
+          <p class="text-xs text-gray-500 mt-0.5">쌍방 관계는 좌/우 곡선 화살표로 분리되며, 인물이 많아도 겹치지 않게 자동 정렬됩니다.</p>
         </div>
         
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <select id="layoutSelect" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
+            <option value="hub">방사형 자동 정렬 (다수 인원 추천)</option>
             <option value="hierarchical-UD">가계도/조직도 (위 ➔ 아래)</option>
             <option value="hierarchical-LR">마인드맵 (좌 ➔ 우 가지)</option>
-            <option value="hub">방사형 정적 마인드맵</option>
           </select>
+
+          <button id="fitGraphBtn" title="화면 맞춤" class="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition">
+            <i data-lucide="maximize-2" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">전체 보기</span>
+          </button>
 
           <button id="downloadGraphImgBtn" class="flex items-center gap-1.5 bg-gray-900 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-black transition shadow-sm shrink-0">
             <i data-lucide="image" class="w-4 h-4"></i>
@@ -145,6 +150,10 @@
 
       <div class="relative border border-gray-200 shadow-sm rounded-2xl overflow-hidden bg-white">
         <div id="networkCanvas"></div>
+        <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-2 rounded-xl border border-gray-200 text-[11px] text-gray-500 shadow-sm space-y-0.5 pointer-events-none">
+          <div>📌 <strong>쌍방 화살표 분리:</strong> 서로 다른 방향의 화살표가 좌/우로 휘어져 글씨가 겹치지 않습니다.</div>
+          <div>💡 마우스 휠로 확대/축소, 노드를 드래그하여 원하는 위치로 미세 조정할 수 있습니다.</div>
+        </div>
       </div>
     </section>
 
@@ -195,13 +204,14 @@
 
         <hr class="border-gray-100" />
 
+        <!-- 관계도 설정 섹션 (방향 선택: 오른쓰기 / 왼쓰기 추가) -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">인물 관계 설정</h3>
-              <p class="text-[11px] text-gray-400">상대 캐릭터 이름과 관계를 입력해 연결하세요.</p>
+              <p class="text-[11px] text-gray-400"><strong>오른쓰기(나 ➔ 상대)</strong>와 <strong>왼쓰기(나 ⬅ 상대)</strong> 방향을 각각 지정해 관계명을 분리할 수 있습니다.</p>
             </div>
-            <button type="button" id="addRelationBtn" class="text-xs text-black font-semibold hover:underline flex items-center gap-1">
+            <button type="button" id="addRelationBtn" class="text-xs text-black font-semibold hover:underline flex items-center gap-1 shrink-0">
               <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 관계 추가
             </button>
           </div>
@@ -285,11 +295,16 @@
       { key: 'background', label: '배경 설정' }
     ];
 
-    let stories = JSON.parse(localStorage.getItem('cast_stories_v7')) || [
-      { id: 'story_default', name: '기본 작품 1' }
-    ];
-    let currentStoryId = localStorage.getItem('cast_current_story_v7') || stories[0].id;
-    let characters = JSON.parse(localStorage.getItem('cast_characters_v7')) || [];
+    // 기존 v7 데이터 호환 마이그레이션 포함
+    let stories = JSON.parse(localStorage.getItem('cast_stories_v8')) 
+               || JSON.parse(localStorage.getItem('cast_stories_v7')) 
+               || [{ id: 'story_default', name: '기본 작품 1' }];
+    let currentStoryId = localStorage.getItem('cast_current_story_v8') 
+                      || localStorage.getItem('cast_current_story_v7') 
+                      || stories[0].id;
+    let characters = JSON.parse(localStorage.getItem('cast_characters_v8')) 
+                  || JSON.parse(localStorage.getItem('cast_characters_v7')) 
+                  || [];
 
     let activeTag = null;
     let networkInstance = null;
@@ -308,6 +323,7 @@
     const cardsView = document.getElementById('cardsView');
     const graphView = document.getElementById('graphView');
     const layoutSelect = document.getElementById('layoutSelect');
+    const fitGraphBtn = document.getElementById('fitGraphBtn');
     const downloadGraphImgBtn = document.getElementById('downloadGraphImgBtn');
 
     const modal = document.getElementById('modal');
@@ -348,9 +364,9 @@
     }
 
     function saveToLocalStorage() {
-      localStorage.setItem('cast_stories_v7', JSON.stringify(stories));
-      localStorage.setItem('cast_current_story_v7', currentStoryId);
-      localStorage.setItem('cast_characters_v7', JSON.stringify(characters));
+      localStorage.setItem('cast_stories_v8', JSON.stringify(stories));
+      localStorage.setItem('cast_current_story_v8', currentStoryId);
+      localStorage.setItem('cast_characters_v8', JSON.stringify(characters));
     }
 
     function getCurrentStoryCharacters() {
@@ -428,9 +444,12 @@
       closeDetailModalBtn.onclick = () => detailModal.classList.add('hidden');
 
       addFieldBtn.onclick = () => addDynamicFieldInput('', '');
-      addRelationBtn.onclick = () => addRelationInput('', '');
+      addRelationBtn.onclick = () => addRelationInput('', '', 'right');
 
       layoutSelect.onchange = () => renderRelationshipGraph();
+      fitGraphBtn.onclick = () => {
+        if (networkInstance) networkInstance.fit({ animation: { duration: 400, easingFunction: 'easeInOutQuad' } });
+      };
       downloadGraphImgBtn.onclick = downloadGraphImage;
 
       charForm.onsubmit = handleFormSubmit;
@@ -451,15 +470,17 @@
       }
     }
 
+    // ⭐ 핵심 개선 1: 쌍방 화살표 좌/우 분리 및 다중 노드 겹침 방지 렌더링
     function renderRelationshipGraph() {
       const container = document.getElementById('networkCanvas');
       const layoutStyle = layoutSelect.value;
       const currentList = getCurrentStoryCharacters();
       
       const nodesArray = [];
-      const edgesArray = [];
+      const rawEdges = [];
       const existingNodes = new Set();
 
+      // 1. 등록된 캐릭터 노드 생성
       currentList.forEach(char => {
         existingNodes.add(char.name);
         nodesArray.push({
@@ -467,7 +488,7 @@
           label: `  ${char.name}  `,
           title: char.oneLiner ? `${char.name}: ${char.oneLiner}` : char.name,
           shape: 'box',
-          margin: { top: 10, bottom: 10, left: 16, right: 16 },
+          margin: { top: 12, bottom: 12, left: 18, right: 18 },
           color: {
             background: '#ffffff',
             border: '#8b5cf6',
@@ -475,10 +496,11 @@
           },
           font: { size: 14, face: 'sans-serif', color: '#111827', bold: true },
           borderWidth: 2,
-          shadow: { enabled: true, color: 'rgba(0,0,0,0.05)', size: 6, x: 0, y: 2 }
+          shadow: { enabled: true, color: 'rgba(0,0,0,0.06)', size: 8, x: 0, y: 2 }
         });
       });
 
+      // 2. 방향(오른쓰기 / 왼쓰기)에 맞춰 화살표 데이터 수집
       currentList.forEach(char => {
         if (char.relations) {
           char.relations.forEach(rel => {
@@ -489,7 +511,7 @@
                   id: rel.targetName,
                   label: `  ${rel.targetName}  `,
                   shape: 'box',
-                  margin: { top: 8, bottom: 8, left: 14, right: 14 },
+                  margin: { top: 10, bottom: 10, left: 16, right: 16 },
                   color: {
                     background: '#f9fafb',
                     border: '#d1d5db',
@@ -501,19 +523,79 @@
                 });
               }
 
-              edgesArray.push({
-                from: char.name,
-                to: rel.targetName,
-                label: ` ${rel.label || ''} `,
-                arrows: { to: { enabled: true, scaleFactor: 0.8 } },
-                font: { size: 11, color: '#6b7280', strokeWidth: 4, strokeColor: '#ffffff' },
-                color: { color: '#a78bfa', highlight: '#7c3aed' },
-                width: 2,
-                smooth: { type: 'cubicBezier', forceDirection: 'none', roundness: 0.4 }
+              // dir === 'left' (왼쓰기: 상대 ➔ 나) / dir === 'right' (오른쓰기: 나 ➔ 상대)
+              const isLeft = rel.dir === 'left';
+              const fromNode = isLeft ? rel.targetName : char.name;
+              const toNode = isLeft ? char.name : rel.targetName;
+
+              rawEdges.push({
+                from: fromNode,
+                to: toNode,
+                label: rel.label || '',
+                isLeftStyle: isLeft
               });
             }
           });
         }
+      });
+
+      // 3. 동일 두 인물 간 양방향/다중 화살표 감지 후 좌/우 곡률 분리 처리
+      const pairCounts = {};
+      rawEdges.forEach(edge => {
+        const pairKey = [edge.from, edge.to].sort().join('___');
+        pairCounts[pairKey] = (pairCounts[pairKey] || 0) + 1;
+      });
+
+      const pairIndexMap = {};
+      const edgesArray = rawEdges.map(edge => {
+        const pairKey = [edge.from, edge.to].sort().join('___');
+        const totalInPair = pairCounts[pairKey];
+        const currentIdx = pairIndexMap[pairKey] || 0;
+        pairIndexMap[pairKey] = currentIdx + 1;
+
+        let smoothConfig;
+        let edgeColor = '#8b5cf6';
+        let labelBg = '#ffffff';
+
+        if (totalInPair > 1) {
+          // 쌍방(또는 복수) 화살표일 때: 합쳐지지 않고 오른쪽/왼쪽 별도 곡선으로 크게 벌어짐
+          const isSecond = currentIdx % 2 === 1;
+          smoothConfig = {
+            enabled: true,
+            type: isSecond ? 'curvedCCW' : 'curvedCW',
+            roundness: 0.28 + Math.floor(currentIdx / 2) * 0.15
+          };
+          edgeColor = isSecond ? '#ec4899' : '#7c3aed'; // 쌍방 구별이 쉽도록 보라 / 핑크-마젠타 계열 대비 적용
+        } else {
+          smoothConfig = {
+            enabled: true,
+            type: 'curvedCW',
+            roundness: 0.08
+          };
+        }
+
+        return {
+          from: edge.from,
+          to: edge.to,
+          label: edge.label ? ` ${edge.label} ` : '',
+          arrows: {
+            to: { enabled: true, scaleFactor: 0.75, type: 'arrow' }
+          },
+          font: {
+            size: 11,
+            color: '#374151',
+            background: labelBg,
+            strokeWidth: 0,
+            align: 'horizontal'
+          },
+          color: {
+            color: edgeColor,
+            highlight: '#4c1d95',
+            hover: '#4c1d95'
+          },
+          width: 2,
+          smooth: smoothConfig
+        };
       });
 
       const data = {
@@ -521,8 +603,15 @@
         edges: new vis.DataSet(edgesArray)
       };
 
+      // ⭐ 핵심 개선 2: 인원이 많아져도 깨지지 않도록 간격 및 반발력 대폭 강화
+      const nodeCount = nodesArray.length;
       let options = {
-        interaction: { hover: true, dragNodes: true, zoomView: true },
+        interaction: {
+          hover: true,
+          dragNodes: true,
+          zoomView: true,
+          navigationButtons: false
+        },
         physics: { enabled: false }
       };
 
@@ -532,8 +621,12 @@
             enabled: true,
             direction: 'UD',
             sortMethod: 'directed',
-            nodeSpacing: 160,
-            levelSeparation: 120
+            nodeSpacing: Math.max(220, nodeCount * 15),
+            levelSeparation: 170,
+            treeSpacing: 240,
+            blockShifting: true,
+            edgeMinimization: true,
+            parentCentralization: true
           }
         };
       } else if (layoutStyle === 'hierarchical-LR') {
@@ -542,15 +635,31 @@
             enabled: true,
             direction: 'LR',
             sortMethod: 'directed',
-            nodeSpacing: 100,
-            levelSeparation: 200
+            nodeSpacing: Math.max(140, nodeCount * 10),
+            levelSeparation: 260,
+            treeSpacing: 180,
+            blockShifting: true,
+            edgeMinimization: true
           }
         };
       } else if (layoutStyle === 'hub') {
+        // 인원 수에 비례해 스프링 길이와 반발력을 넓혀서 카드가 겹치거나 깨지지 않게 방지
+        const dynamicSpringLength = Math.max(240, 180 + nodeCount * 14);
         options.physics = {
           enabled: true,
-          solver: 'forceAtlas2Based',
-          stabilization: { iterations: 150 }
+          solver: 'repulsion',
+          repulsion: {
+            centralGravity: 0.08,
+            springLength: dynamicSpringLength,
+            springConstant: 0.04,
+            nodeDistance: Math.max(230, 170 + nodeCount * 12),
+            damping: 0.12
+          },
+          stabilization: {
+            enabled: true,
+            iterations: 350,
+            updateInterval: 25
+          }
         };
       }
 
@@ -562,13 +671,18 @@
       if (layoutStyle === 'hub') {
         networkInstance.once('stabilizationIterationsDone', function () {
           networkInstance.setOptions({ physics: { enabled: false } });
+          networkInstance.fit({ animation: { duration: 300 } });
         });
+      } else {
+        setTimeout(() => {
+          if (networkInstance) networkInstance.fit({ animation: { duration: 300 } });
+        }, 100);
       }
     }
 
     function downloadGraphImage() {
       const canvasArea = document.getElementById('networkCanvas');
-      html2canvas(canvasArea).then(canvas => {
+      html2canvas(canvasArea, { scale: 2 }).then(canvas => {
         const link = document.createElement('a');
         link.download = `cast_mindmap_${new Date().toISOString().slice(0,10)}.png`;
         link.href = canvas.toDataURL('image/png');
@@ -635,7 +749,7 @@
         };
 
         const topFields = char.fields ? char.fields.slice(0, 2) : [];
-        const topRelations = char.relations ? char.relations.slice(0, 2) : [];
+        const topRelations = char.relations ? char.relations.slice(0, 3) : [];
 
         card.innerHTML = `
           <div>
@@ -659,7 +773,14 @@
 
             ${topRelations.length > 0 ? `
               <div class="flex flex-wrap gap-1 mb-3">
-                ${topRelations.map(r => `<span class="text-[10px] bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-md">➔ ${escapeHtml(r.targetName)} (${escapeHtml(r.label)})</span>`).join('')}
+                ${topRelations.map(r => {
+                  const isLeft = r.dir === 'left';
+                  const arrowBadge = isLeft ? '⬅' : '➔';
+                  const badgeStyle = isLeft 
+                    ? 'bg-pink-50 text-pink-700 border-pink-100' 
+                    : 'bg-purple-50 text-purple-700 border-purple-100';
+                  return `<span class="text-[10px] ${badgeStyle} border px-2 py-0.5 rounded-md">${arrowBadge} ${escapeHtml(r.targetName)} (${escapeHtml(r.label)})</span>`;
+                }).join('')}
               </div>
             ` : ''}
 
@@ -677,14 +798,18 @@
       lucide.createIcons();
     }
 
-    function addRelationInput(targetName = '', label = '') {
+    // ⭐ 오른쓰기(➔) / 왼쓰기(⬅) 선택 가능한 관계 입력 행
+    function addRelationInput(targetName = '', label = '', dir = 'right') {
       const relDiv = document.createElement('div');
-      relDiv.className = "flex gap-2 items-center relation-row";
+      relDiv.className = "flex flex-wrap sm:flex-nowrap gap-2 items-center relation-row bg-gray-50/70 p-2 rounded-xl border border-gray-100";
       relDiv.innerHTML = `
-        <span class="text-xs text-gray-400">➔</span>
-        <input type="text" placeholder="대상 이름 (예: 윤아리엘)" value="${escapeHtml(targetName)}" class="rel-target w-1/2 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
-        <input type="text" placeholder="관계 (예: 짝사랑)" value="${escapeHtml(label)}" class="rel-label flex-1 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
-        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+        <select class="rel-dir bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-black/5 shrink-0">
+          <option value="right" ${dir !== 'left' ? 'selected' : ''}>오른쓰기 (나 ➔ 상대)</option>
+          <option value="left" ${dir === 'left' ? 'selected' : ''}>왼쓰기 (나 ⬅ 상대)</option>
+        </select>
+        <input type="text" placeholder="상대 이름 (예: 오실장)" value="${escapeHtml(targetName)}" class="rel-target w-full sm:w-1/3 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
+        <input type="text" placeholder="관계명 (예: 짝사랑, 혐관)" value="${escapeHtml(label)}" class="rel-label flex-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-black/5" />
+        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition shrink-0">
           <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
         </button>
       `;
@@ -723,7 +848,7 @@
         document.getElementById('memoInput').value = char.memo || '';
 
         if (char.relations && char.relations.length > 0) {
-          char.relations.forEach(r => addRelationInput(r.targetName, r.label));
+          char.relations.forEach(r => addRelationInput(r.targetName, r.label, r.dir || 'right'));
         }
 
         if (char.fields && char.fields.length > 0) {
@@ -753,9 +878,10 @@
       const relRows = relationsContainer.querySelectorAll('.relation-row');
       const relations = [];
       relRows.forEach(row => {
+        const dir = row.querySelector('.rel-dir').value;
         const targetName = row.querySelector('.rel-target').value.trim();
         const label = row.querySelector('.rel-label').value.trim();
-        if (targetName) relations.push({ targetName, label });
+        if (targetName) relations.push({ dir, targetName, label });
       });
 
       const fieldRows = dynamicFieldsContainer.querySelectorAll('.field-row');
@@ -794,9 +920,14 @@
       detailRelations.innerHTML = '';
       if (char.relations && char.relations.length > 0) {
         char.relations.forEach(r => {
+          const isLeft = r.dir === 'left';
           const span = document.createElement('span');
-          span.className = "text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-xl";
-          span.innerText = `➔ ${r.targetName} (${r.label || '관계'})`;
+          span.className = isLeft
+            ? "text-xs bg-pink-50 text-pink-700 border border-pink-200 px-3 py-1 rounded-xl"
+            : "text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-xl";
+          span.innerText = isLeft
+            ? `⬅ ${r.targetName} (${r.label || '관계'}) [왼쓰기]`
+            : `➔ ${r.targetName} (${r.label || '관계'}) [오른쓰기]`;
           detailRelations.appendChild(span);
         });
         detailRelationsContainer.classList.remove('hidden');
@@ -849,7 +980,10 @@
       if (char.oneLiner) promptText += `■ 한줄소개: ${char.oneLiner}\n`;
       if (char.tags && char.tags.length > 0) promptText += `■ 태그: ${char.tags.join(', ')}\n`;
       if (char.relations && char.relations.length > 0) {
-        promptText += `■ 관계: ` + char.relations.map(r => `${r.targetName}(${r.label})`).join(', ') + `\n`;
+        promptText += `■ 관계: ` + char.relations.map(r => {
+          const arrow = r.dir === 'left' ? '⬅' : '➔';
+          return `${arrow} ${r.targetName}(${r.label})`;
+        }).join(', ') + `\n`;
       }
       if (char.fields && char.fields.length > 0) {
         char.fields.forEach(f => { promptText += `■ ${f.label}: ${f.value || '-'}\n`; });
