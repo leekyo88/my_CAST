@@ -1,6 +1,6 @@
 <!--
   ========================================================
-  Cast - 웹소설/작품 인물 프로필 & 마인드맵 관계도 노트
+  Cast - 웹소설/작품 인물 프로필 & 드라마형 인물관계도 노트
   Created by: Creator (무료 배포 버전에 반영)
   
   * 본 프로그램은 누구나 자유롭게 사용할 수 있는 무료 도구입니다.
@@ -26,7 +26,14 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    #networkCanvas { width: 100%; height: 680px; border-radius: 1rem; background-color: #ffffff; }
+    #networkCanvas {
+      width: 100%;
+      height: 760px;
+      border-radius: 1rem;
+      background-color: #ffffff;
+      background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen pb-12">
@@ -118,27 +125,37 @@
       </div>
     </section>
 
-    <!-- VIEW 2: 마인드맵 관계도 뷰 -->
+    <!-- VIEW 2: 드라마형 인물관계도 뷰 -->
     <section id="graphView" class="hidden space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-2xl border border-gray-200 shadow-sm gap-3">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between bg-white p-4 rounded-2xl border border-gray-200 shadow-sm gap-3">
         <div>
           <h2 class="font-bold text-gray-900 text-lg flex items-center gap-2">
-            <span id="graphStoryTitle">마인드맵 관계도</span>
-            <span class="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">쌍방 분리 · 자동 정렬</span>
+            <span id="graphStoryTitle">인물 관계도</span>
+            <span class="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">중앙 주인공 배치</span>
           </h2>
-          <p class="text-xs text-gray-500 mt-0.5">쌍방 관계는 좌/우 곡선 화살표로 분리되며, 인물이 많아도 겹치지 않게 자동 정렬됩니다.</p>
+          <p class="text-xs text-gray-500 mt-0.5">주연(공/수/메인) 2명이 중앙에 마주 서고, 양옆과 하단으로 주변 인물이 깔끔하게 정렬됩니다.</p>
         </div>
         
         <div class="flex flex-wrap items-center gap-2">
+          <!-- 주인공(중앙 2인) 지정 컨트롤 -->
+          <div class="flex items-center gap-1.5 bg-purple-50/80 border border-purple-200/80 px-2.5 py-1.5 rounded-xl">
+            <span class="text-[11px] font-bold text-purple-800 shrink-0">👑 중앙 주연:</span>
+            <select id="centerLeftSelect" title="중앙 왼쪽 주연" class="bg-white border border-purple-200 text-gray-800 text-xs rounded-lg px-2 py-1 font-semibold focus:outline-none">
+            </select>
+            <span class="text-xs text-purple-400 font-bold">↔</span>
+            <select id="centerRightSelect" title="중앙 오른쪽 주연" class="bg-white border border-purple-200 text-gray-800 text-xs rounded-lg px-2 py-1 font-semibold focus:outline-none">
+            </select>
+          </div>
+
           <select id="layoutSelect" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
-            <option value="hub">방사형 자동 정렬 (다수 인원 추천)</option>
+            <option value="drama-center">드라마형 (중앙 주연 + 양옆/하단 배치)</option>
             <option value="hierarchical-UD">가계도/조직도 (위 ➔ 아래)</option>
-            <option value="hierarchical-LR">마인드맵 (좌 ➔ 우 가지)</option>
+            <option value="hierarchical-LR">가로 마인드맵 (좌 ➔ 우)</option>
           </select>
 
-          <button id="fitGraphBtn" title="화면 맞춤" class="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition">
-            <i data-lucide="maximize-2" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">전체 보기</span>
+          <button id="resetLayoutBtn" title="자동 정렬 초기화" class="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-xs font-medium hover:bg-gray-200 transition">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">정렬 리셋</span>
           </button>
 
           <button id="downloadGraphImgBtn" class="flex items-center gap-1.5 bg-gray-900 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-black transition shadow-sm shrink-0">
@@ -150,9 +167,14 @@
 
       <div class="relative border border-gray-200 shadow-sm rounded-2xl overflow-hidden bg-white">
         <div id="networkCanvas"></div>
-        <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-2 rounded-xl border border-gray-200 text-[11px] text-gray-500 shadow-sm space-y-0.5 pointer-events-none">
-          <div>📌 <strong>쌍방 화살표 분리:</strong> 서로 다른 방향의 화살표가 좌/우로 휘어져 글씨가 겹치지 않습니다.</div>
-          <div>💡 마우스 휠로 확대/축소, 노드를 드래그하여 원하는 위치로 미세 조정할 수 있습니다.</div>
+        <!-- 범례 안내 -->
+        <div class="absolute bottom-4 left-4 bg-white/95 backdrop-blur px-3.5 py-2.5 rounded-xl border border-gray-200 text-[11px] text-gray-600 shadow-sm space-y-1 pointer-events-none">
+          <div class="flex items-center gap-3">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-purple-600 inline-block"></span> <strong>중앙 주연</strong></span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm border-2 border-purple-400 bg-white inline-block"></span> <strong>등록 인물</strong></span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm border border-dashed border-gray-400 bg-gray-50 inline-block"></span> <strong>관계 언급 인물</strong></span>
+          </div>
+          <div class="text-gray-400">💡 카드를 드래그하면 원하는 위치에 고정되며, 화살표 위 라벨은 겹치지 않게 위/아래로 자동 분리됩니다.</div>
         </div>
       </div>
     </section>
@@ -189,22 +211,22 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">이름 *</label>
-              <input type="text" id="nameInput" required placeholder="예: 강이현" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
+              <input type="text" id="nameInput" required placeholder="예: 박무섭" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">태그 (쉼표 구분)</label>
-              <input type="text" id="tagsInput" placeholder="예: 남주, 북부대공, 집착남" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
+              <label class="block text-xs font-semibold text-gray-600 mb-1">역할 / 태그 (쉼표 구분)</label>
+              <input type="text" id="tagsInput" placeholder="예: 공, 수, 주연, 조연, 비서" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
             </div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">한 줄 소개</label>
-            <input type="text" id="oneLinerInput" placeholder="예: 차가운 북부 대공이지만 내 여자에겐 따뜻함" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
+            <label class="block text-xs font-semibold text-gray-600 mb-1">한 줄 소개 (관계도 카드 하단에도 표시됨)</label>
+            <input type="text" id="oneLinerInput" placeholder="예: 냉혈한 재벌 3세 / 생계형 알바생" class="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5" />
           </div>
         </div>
 
         <hr class="border-gray-100" />
 
-        <!-- 관계도 설정 섹션 (방향 선택: 오른쓰기 / 왼쓰기 추가) -->
+        <!-- 관계도 설정 섹션 -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -295,16 +317,21 @@
       { key: 'background', label: '배경 설정' }
     ];
 
-    // 기존 v7 데이터 호환 마이그레이션 포함
-    let stories = JSON.parse(localStorage.getItem('cast_stories_v8')) 
-               || JSON.parse(localStorage.getItem('cast_stories_v7')) 
+    // 기존 v8, v7 데이터 호환 로드
+    let stories = JSON.parse(localStorage.getItem('cast_stories_v9'))
+               || JSON.parse(localStorage.getItem('cast_stories_v8'))
+               || JSON.parse(localStorage.getItem('cast_stories_v7'))
                || [{ id: 'story_default', name: '기본 작품 1' }];
-    let currentStoryId = localStorage.getItem('cast_current_story_v8') 
-                      || localStorage.getItem('cast_current_story_v7') 
+    let currentStoryId = localStorage.getItem('cast_current_story_v9')
+                      || localStorage.getItem('cast_current_story_v8')
+                      || localStorage.getItem('cast_current_story_v7')
                       || stories[0].id;
-    let characters = JSON.parse(localStorage.getItem('cast_characters_v8')) 
-                  || JSON.parse(localStorage.getItem('cast_characters_v7')) 
+    let characters = JSON.parse(localStorage.getItem('cast_characters_v9'))
+                  || JSON.parse(localStorage.getItem('cast_characters_v8'))
+                  || JSON.parse(localStorage.getItem('cast_characters_v7'))
                   || [];
+    // 작품별 중앙 주연(공/수) 2인 설정 저장
+    let storyLeads = JSON.parse(localStorage.getItem('cast_story_leads_v9')) || {};
 
     let activeTag = null;
     let networkInstance = null;
@@ -323,7 +350,9 @@
     const cardsView = document.getElementById('cardsView');
     const graphView = document.getElementById('graphView');
     const layoutSelect = document.getElementById('layoutSelect');
-    const fitGraphBtn = document.getElementById('fitGraphBtn');
+    const centerLeftSelect = document.getElementById('centerLeftSelect');
+    const centerRightSelect = document.getElementById('centerRightSelect');
+    const resetLayoutBtn = document.getElementById('resetLayoutBtn');
     const downloadGraphImgBtn = document.getElementById('downloadGraphImgBtn');
 
     const modal = document.getElementById('modal');
@@ -364,9 +393,10 @@
     }
 
     function saveToLocalStorage() {
-      localStorage.setItem('cast_stories_v8', JSON.stringify(stories));
-      localStorage.setItem('cast_current_story_v8', currentStoryId);
-      localStorage.setItem('cast_characters_v8', JSON.stringify(characters));
+      localStorage.setItem('cast_stories_v9', JSON.stringify(stories));
+      localStorage.setItem('cast_current_story_v9', currentStoryId);
+      localStorage.setItem('cast_characters_v9', JSON.stringify(characters));
+      localStorage.setItem('cast_story_leads_v9', JSON.stringify(storyLeads));
     }
 
     function getCurrentStoryCharacters() {
@@ -391,7 +421,10 @@
         activeTag = null;
         renderTags();
         renderCards(getCurrentStoryCharacters());
-        if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+        if (!graphView.classList.contains('hidden')) {
+          populateLeadSelectors();
+          renderRelationshipGraph();
+        }
       };
 
       addStoryBtn.onclick = () => {
@@ -415,6 +448,7 @@
         const currentStory = stories.find(s => s.id === currentStoryId);
         if (confirm(`'${currentStory.name}' 작품과 해당 작품의 모든 캐릭터를 삭제하시겠습니까?`)) {
           characters = characters.filter(c => c.storyId !== currentStoryId);
+          delete storyLeads[currentStoryId];
           stories = stories.filter(s => s.id !== currentStoryId);
           currentStoryId = stories[0].id;
           saveToLocalStorage();
@@ -446,10 +480,26 @@
       addFieldBtn.onclick = () => addDynamicFieldInput('', '');
       addRelationBtn.onclick = () => addRelationInput('', '', 'right');
 
-      layoutSelect.onchange = () => renderRelationshipGraph();
-      fitGraphBtn.onclick = () => {
-        if (networkInstance) networkInstance.fit({ animation: { duration: 400, easingFunction: 'easeInOutQuad' } });
+      centerLeftSelect.onchange = () => {
+        storyLeads[currentStoryId] = {
+          left: centerLeftSelect.value,
+          right: centerRightSelect.value
+        };
+        saveToLocalStorage();
+        renderRelationshipGraph();
       };
+
+      centerRightSelect.onchange = () => {
+        storyLeads[currentStoryId] = {
+          left: centerLeftSelect.value,
+          right: centerRightSelect.value
+        };
+        saveToLocalStorage();
+        renderRelationshipGraph();
+      };
+
+      layoutSelect.onchange = () => renderRelationshipGraph();
+      resetLayoutBtn.onclick = () => renderRelationshipGraph();
       downloadGraphImgBtn.onclick = downloadGraphImage;
 
       charForm.onsubmit = handleFormSubmit;
@@ -466,80 +516,218 @@
         graphView.classList.remove('hidden');
         tabGraphBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-gray-900 shadow-sm";
         tabCardsBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition";
+        populateLeadSelectors();
         renderRelationshipGraph();
       }
     }
 
-    // ⭐ 핵심 개선 1: 쌍방 화살표 좌/우 분리 및 다중 노드 겹침 방지 렌더링
+    function populateLeadSelectors() {
+      const currentList = getCurrentStoryCharacters();
+      const allNames = new Set(currentList.map(c => c.name));
+      currentList.forEach(c => {
+        (c.relations || []).forEach(r => {
+          if (r.targetName) allNames.add(r.targetName);
+        });
+      });
+      const nameList = Array.from(allNames);
+
+      let saved = storyLeads[currentStoryId] || {};
+      if (!saved.left || !allNames.has(saved.left) || !saved.right || !allNames.has(saved.right)) {
+        const taggedGong = currentList.find(c => (c.tags || []).some(t => ['공', '남주', '주연', '메인'].includes(t)));
+        const taggedSu = currentList.find(c => c.name !== (taggedGong && taggedGong.name) && (c.tags || []).some(t => ['수', '여주', '주연', '메인'].includes(t)));
+        
+        const degreeMap = {};
+        nameList.forEach(n => degreeMap[n] = 0);
+        currentList.forEach(c => {
+          (c.relations || []).forEach(r => {
+            if (r.targetName) {
+              degreeMap[c.name] = (degreeMap[c.name] || 0) + 1;
+              degreeMap[r.targetName] = (degreeMap[r.targetName] || 0) + 1;
+            }
+          });
+        });
+        const sortedByDegree = [...nameList].sort((a, b) => (degreeMap[b] || 0) - (degreeMap[a] || 0));
+
+        const defaultLeft = (taggedGong && taggedGong.name) || sortedByDegree[0] || '';
+        const defaultRight = (taggedSu && taggedSu.name) || sortedByDegree.find(n => n !== defaultLeft) || '';
+        saved = { left: defaultLeft, right: defaultRight };
+        storyLeads[currentStoryId] = saved;
+        saveToLocalStorage();
+      }
+
+      centerLeftSelect.innerHTML = '<option value="">선택 없음</option>';
+      centerRightSelect.innerHTML = '<option value="">선택 없음</option>';
+
+      nameList.forEach(name => {
+        const optL = document.createElement('option');
+        optL.value = name;
+        optL.innerText = name;
+        if (name === saved.left) optL.selected = true;
+        centerLeftSelect.appendChild(optL);
+
+        const optR = document.createElement('option');
+        optR.value = name;
+        optR.innerText = name;
+        if (name === saved.right) optR.selected = true;
+        centerRightSelect.appendChild(optR);
+      });
+    }
+
     function renderRelationshipGraph() {
       const container = document.getElementById('networkCanvas');
       const layoutStyle = layoutSelect.value;
       const currentList = getCurrentStoryCharacters();
-      
-      const nodesArray = [];
+      const leads = storyLeads[currentStoryId] || {};
+      const leadL = leads.left || '';
+      const leadR = leads.right || '';
+
+      const charMap = {};
+      currentList.forEach(c => { charMap[c.name] = c; });
+
+      const allNodeNames = new Set(currentList.map(c => c.name));
       const rawEdges = [];
-      const existingNodes = new Set();
 
-      // 1. 등록된 캐릭터 노드 생성
-      currentList.forEach(char => {
-        existingNodes.add(char.name);
-        nodesArray.push({
-          id: char.name,
-          label: `  ${char.name}  `,
-          title: char.oneLiner ? `${char.name}: ${char.oneLiner}` : char.name,
-          shape: 'box',
-          margin: { top: 12, bottom: 12, left: 18, right: 18 },
-          color: {
-            background: '#ffffff',
-            border: '#8b5cf6',
-            highlight: { background: '#f3e8ff', border: '#7c3aed' }
-          },
-          font: { size: 14, face: 'sans-serif', color: '#111827', bold: true },
-          borderWidth: 2,
-          shadow: { enabled: true, color: 'rgba(0,0,0,0.06)', size: 8, x: 0, y: 2 }
-        });
-      });
-
-      // 2. 방향(오른쓰기 / 왼쓰기)에 맞춰 화살표 데이터 수집
       currentList.forEach(char => {
         if (char.relations) {
           char.relations.forEach(rel => {
             if (rel.targetName) {
-              if (!existingNodes.has(rel.targetName)) {
-                existingNodes.add(rel.targetName);
-                nodesArray.push({
-                  id: rel.targetName,
-                  label: `  ${rel.targetName}  `,
-                  shape: 'box',
-                  margin: { top: 10, bottom: 10, left: 16, right: 16 },
-                  color: {
-                    background: '#f9fafb',
-                    border: '#d1d5db',
-                    highlight: { background: '#f3f4f6', border: '#9ca3af' }
-                  },
-                  font: { size: 13, color: '#4b5563' },
-                  borderWidth: 1,
-                  shapeProperties: { borderDashes: true }
-                });
-              }
-
-              // dir === 'left' (왼쓰기: 상대 ➔ 나) / dir === 'right' (오른쓰기: 나 ➔ 상대)
+              allNodeNames.add(rel.targetName);
               const isLeft = rel.dir === 'left';
-              const fromNode = isLeft ? rel.targetName : char.name;
-              const toNode = isLeft ? char.name : rel.targetName;
-
               rawEdges.push({
-                from: fromNode,
-                to: toNode,
-                label: rel.label || '',
-                isLeftStyle: isLeft
+                from: isLeft ? rel.targetName : char.name,
+                to: isLeft ? char.name : rel.targetName,
+                label: rel.label || ''
               });
             }
           });
         }
       });
 
-      // 3. 동일 두 인물 간 양방향/다중 화살표 감지 후 좌/우 곡률 분리 처리
+      const positions = {};
+      if (layoutStyle === 'drama-center') {
+        const leftConnected = new Set();
+        const rightConnected = new Set();
+
+        rawEdges.forEach(e => {
+          if (e.from === leadL && e.to !== leadR) leftConnected.add(e.to);
+          if (e.to === leadL && e.from !== leadR) leftConnected.add(e.from);
+          if (e.from === leadR && e.to !== leadL) rightConnected.add(e.to);
+          if (e.to === leadR && e.from !== leadL) rightConnected.add(e.from);
+        });
+
+        leftConnected.forEach(n => {
+          if (rightConnected.has(n)) rightConnected.delete(n);
+        });
+
+        const placed = new Set();
+        if (leadL) {
+          positions[leadL] = { x: -170, y: -40 };
+          placed.add(leadL);
+        }
+        if (leadR) {
+          positions[leadR] = { x: 170, y: -40 };
+          placed.add(leadR);
+        }
+
+        const leftArr = Array.from(leftConnected).filter(n => !placed.has(n));
+        leftArr.forEach((name, idx) => {
+          const col = Math.floor(idx / 4);
+          const row = idx % 4;
+          const totalInCol = Math.min(4, leftArr.length - col * 4);
+          const offsetY = (row - (totalInCol - 1) / 2) * 145 - 40;
+          positions[name] = { x: -460 - col * 220, y: offsetY };
+          placed.add(name);
+        });
+
+        const rightArr = Array.from(rightConnected).filter(n => !placed.has(n));
+        rightArr.forEach((name, idx) => {
+          const col = Math.floor(idx / 4);
+          const row = idx % 4;
+          const totalInCol = Math.min(4, rightArr.length - col * 4);
+          const offsetY = (row - (totalInCol - 1) / 2) * 145 - 40;
+          positions[name] = { x: 460 + col * 220, y: offsetY };
+          placed.add(name);
+        });
+
+        const remainingArr = Array.from(allNodeNames).filter(n => !placed.has(n));
+        const cols = 4;
+        remainingArr.forEach((name, idx) => {
+          const r = Math.floor(idx / cols);
+          const c = idx % cols;
+          const itemsInThisRow = Math.min(cols, remainingArr.length - r * cols);
+          const startX = -((itemsInThisRow - 1) * 210) / 2;
+          positions[name] = {
+            x: startX + c * 210,
+            y: 250 + r * 135
+          };
+          placed.add(name);
+        });
+      }
+
+      const nodesArray = Array.from(allNodeNames).map(name => {
+        const char = charMap[name];
+        const isLead = (name === leadL || name === leadR);
+        const roleTag = char && char.tags && char.tags.length > 0 ? char.tags[0] : '';
+        const subText = char && char.oneLiner ? (char.oneLiner.length > 14 ? char.oneLiner.slice(0, 14) + '…' : char.oneLiner) : '';
+
+        let labelText = name;
+        if (roleTag) labelText += ` (${roleTag})`;
+        if (subText) labelText += `\n${subText}`;
+
+        const nodeObj = {
+          id: name,
+          label: labelText,
+          title: char && char.oneLiner ? `${name}: ${char.oneLiner}` : name,
+          shape: 'box',
+          margin: isLead
+            ? { top: 16, bottom: 16, left: 24, right: 24 }
+            : { top: 11, bottom: 11, left: 16, right: 16 },
+          color: isLead
+            ? {
+                background: '#faf5ff',
+                border: '#7c3aed',
+                highlight: { background: '#f3e8ff', border: '#6d28d9' }
+              }
+            : char
+            ? {
+                background: '#ffffff',
+                border: '#a78bfa',
+                highlight: { background: '#f5f3ff', border: '#7c3aed' }
+              }
+            : {
+                background: '#f9fafb',
+                border: '#cbd5e1',
+                highlight: { background: '#f3f4f6', border: '#94a3b8' }
+              },
+          font: {
+            size: isLead ? 15 : 13,
+            face: 'sans-serif',
+            color: char ? '#111827' : '#4b5563',
+            bold: isLead ? true : false,
+            multi: false
+          },
+          borderWidth: isLead ? 3 : (char ? 2 : 1.5),
+          shapeProperties: {
+            borderRadius: 10,
+            borderDashes: char ? false : [4, 4]
+          },
+          shadow: {
+            enabled: true,
+            color: isLead ? 'rgba(124, 58, 237, 0.14)' : 'rgba(0,0,0,0.05)',
+            size: isLead ? 12 : 6,
+            x: 0,
+            y: 3
+          }
+        };
+
+        if (layoutStyle === 'drama-center' && positions[name]) {
+          nodeObj.x = positions[name].x;
+          nodeObj.y = positions[name].y;
+        }
+
+        return nodeObj;
+      });
+
       const pairCounts = {};
       rawEdges.forEach(edge => {
         const pairKey = [edge.from, edge.to].sort().join('___');
@@ -554,24 +742,25 @@
         pairIndexMap[pairKey] = currentIdx + 1;
 
         let smoothConfig;
-        let edgeColor = '#8b5cf6';
-        let labelBg = '#ffffff';
+        let edgeColor = '#7c3aed';
+        let labelAlign = 'top';
 
         if (totalInPair > 1) {
-          // 쌍방(또는 복수) 화살표일 때: 합쳐지지 않고 오른쪽/왼쪽 별도 곡선으로 크게 벌어짐
           const isSecond = currentIdx % 2 === 1;
           smoothConfig = {
             enabled: true,
             type: isSecond ? 'curvedCCW' : 'curvedCW',
-            roundness: 0.28 + Math.floor(currentIdx / 2) * 0.15
+            roundness: 0.34 + Math.floor(currentIdx / 2) * 0.16
           };
-          edgeColor = isSecond ? '#ec4899' : '#7c3aed'; // 쌍방 구별이 쉽도록 보라 / 핑크-마젠타 계열 대비 적용
+          edgeColor = isSecond ? '#e11d48' : '#7c3aed';
+          labelAlign = isSecond ? 'bottom' : 'top';
         } else {
           smoothConfig = {
             enabled: true,
             type: 'curvedCW',
-            roundness: 0.08
+            roundness: 0.06
           };
+          labelAlign = 'top';
         }
 
         return {
@@ -583,15 +772,16 @@
           },
           font: {
             size: 11,
-            color: '#374151',
-            background: labelBg,
+            color: edgeColor === '#e11d48' ? '#be123c' : '#4c1d95',
+            background: 'rgba(255, 255, 255, 0.94)',
             strokeWidth: 0,
-            align: 'horizontal'
+            align: labelAlign,
+            vadjust: labelAlign === 'top' ? -4 : 4
           },
           color: {
             color: edgeColor,
-            highlight: '#4c1d95',
-            hover: '#4c1d95'
+            highlight: '#111827',
+            hover: '#111827'
           },
           width: 2,
           smooth: smoothConfig
@@ -603,14 +793,12 @@
         edges: new vis.DataSet(edgesArray)
       };
 
-      // ⭐ 핵심 개선 2: 인원이 많아져도 깨지지 않도록 간격 및 반발력 대폭 강화
       const nodeCount = nodesArray.length;
       let options = {
         interaction: {
           hover: true,
           dragNodes: true,
-          zoomView: true,
-          navigationButtons: false
+          zoomView: true
         },
         physics: { enabled: false }
       };
@@ -622,11 +810,10 @@
             direction: 'UD',
             sortMethod: 'directed',
             nodeSpacing: Math.max(220, nodeCount * 15),
-            levelSeparation: 170,
+            levelSeparation: 180,
             treeSpacing: 240,
             blockShifting: true,
-            edgeMinimization: true,
-            parentCentralization: true
+            edgeMinimization: true
           }
         };
       } else if (layoutStyle === 'hierarchical-LR') {
@@ -635,30 +822,11 @@
             enabled: true,
             direction: 'LR',
             sortMethod: 'directed',
-            nodeSpacing: Math.max(140, nodeCount * 10),
-            levelSeparation: 260,
+            nodeSpacing: Math.max(150, nodeCount * 10),
+            levelSeparation: 280,
             treeSpacing: 180,
             blockShifting: true,
             edgeMinimization: true
-          }
-        };
-      } else if (layoutStyle === 'hub') {
-        // 인원 수에 비례해 스프링 길이와 반발력을 넓혀서 카드가 겹치거나 깨지지 않게 방지
-        const dynamicSpringLength = Math.max(240, 180 + nodeCount * 14);
-        options.physics = {
-          enabled: true,
-          solver: 'repulsion',
-          repulsion: {
-            centralGravity: 0.08,
-            springLength: dynamicSpringLength,
-            springConstant: 0.04,
-            nodeDistance: Math.max(230, 170 + nodeCount * 12),
-            damping: 0.12
-          },
-          stabilization: {
-            enabled: true,
-            iterations: 350,
-            updateInterval: 25
           }
         };
       }
@@ -668,23 +836,18 @@
       }
       networkInstance = new vis.Network(container, data, options);
 
-      if (layoutStyle === 'hub') {
-        networkInstance.once('stabilizationIterationsDone', function () {
-          networkInstance.setOptions({ physics: { enabled: false } });
-          networkInstance.fit({ animation: { duration: 300 } });
-        });
-      } else {
-        setTimeout(() => {
-          if (networkInstance) networkInstance.fit({ animation: { duration: 300 } });
-        }, 100);
-      }
+      setTimeout(() => {
+        if (networkInstance) {
+          networkInstance.fit({ animation: { duration: 300, easingFunction: 'easeInOutQuad' } });
+        }
+      }, 80);
     }
 
     function downloadGraphImage() {
       const canvasArea = document.getElementById('networkCanvas');
-      html2canvas(canvasArea, { scale: 2 }).then(canvas => {
+      html2canvas(canvasArea, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `cast_mindmap_${new Date().toISOString().slice(0,10)}.png`;
+        link.download = `cast_relationship_${new Date().toISOString().slice(0,10)}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
       });
@@ -798,7 +961,6 @@
       lucide.createIcons();
     }
 
-    // ⭐ 오른쓰기(➔) / 왼쓰기(⬅) 선택 가능한 관계 입력 행
     function addRelationInput(targetName = '', label = '', dir = 'right') {
       const relDiv = document.createElement('div');
       relDiv.className = "flex flex-wrap sm:flex-nowrap gap-2 items-center relation-row bg-gray-50/70 p-2 rounded-xl border border-gray-100";
@@ -905,7 +1067,10 @@
       saveToLocalStorage();
       renderTags();
       renderCards(getFilteredCharacters());
-      if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+      if (!graphView.classList.contains('hidden')) {
+        populateLeadSelectors();
+        renderRelationshipGraph();
+      }
       modal.classList.add('hidden');
     }
 
@@ -963,7 +1128,10 @@
           saveToLocalStorage();
           renderTags();
           renderCards(getFilteredCharacters());
-          if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+          if (!graphView.classList.contains('hidden')) {
+            populateLeadSelectors();
+            renderRelationshipGraph();
+          }
           detailModal.classList.add('hidden');
         }
       };
@@ -996,7 +1164,7 @@
     };
 
     function exportJSON() {
-      const exportData = { stories, characters };
+      const exportData = { stories, characters, storyLeads };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -1017,12 +1185,16 @@
             if (confirm(`전체 작품 및 캐릭터 데이터로 덮어쓰시겠습니까?`)) {
               stories = importedData.stories;
               characters = importedData.characters;
+              storyLeads = importedData.storyLeads || {};
               currentStoryId = stories[0].id;
               saveToLocalStorage();
               renderStoryOptions();
               renderTags();
               renderCards(getCurrentStoryCharacters());
-              if (!graphView.classList.contains('hidden')) renderRelationshipGraph();
+              if (!graphView.classList.contains('hidden')) {
+                populateLeadSelectors();
+                renderRelationshipGraph();
+              }
               alert('복원이 완료되었습니다!');
             }
           }
@@ -1032,7 +1204,7 @@
     }
 
     function escapeHtml(str) {
-      return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&#039;").replace(/'/g, "&#039;") : '';
+      return str ? str.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, "'").replace(/'/g, "'") : '';
     }
 
     init();
